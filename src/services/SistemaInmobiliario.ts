@@ -8,11 +8,28 @@ export class SistemaInmobiliario {
     private clientes: Cliente[] = [];
     private lotes: Lote[] = [];
     private ventas: Venta[] = [];
+    private contadorClientes: number = 1;
+    private contadorVentas: number = 1;
 
     // Registrar cliente
-    public registrarCliente(cliente: Cliente): void {
-        this.clientes.push(cliente);
-    }
+    public registrarCliente(
+    nombre: string,
+    dni: string,
+    celular: string,
+    direccion: string
+): Cliente {
+
+    const cliente = new Cliente(
+        this.contadorClientes++,
+        nombre,
+        dni,
+        celular,
+        direccion
+    );
+
+    this.clientes.push(cliente);
+    return cliente;
+}
 
     // Registrar lote
     public registrarLote(lote: Lote): void {
