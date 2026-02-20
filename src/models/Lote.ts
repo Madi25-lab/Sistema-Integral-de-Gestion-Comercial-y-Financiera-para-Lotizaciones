@@ -5,6 +5,7 @@ export class Lote {
 
     constructor(
         private id: number,
+        private lote:string,
         private precio: number
     ) {
         this.estado = EstadoLote.DISPONIBLE;

@@ -32,6 +32,19 @@ export class Venta {
             this.planPago = new PlanPago(lote.getPrecio(), numeroCuotas);
         }
     }
+
+    public pagarCuota(numero: number): void {
+    if (!this.planPago) {
+        throw new Error("Esta venta no es financiada.");
+    }
+
+    this.planPago.pagarCuota(numero);
+
+    // Verificamos si ya terminó de pagar todo
+    if (this.planPago.estaCompletamentePagado()) {
+        this.lote.vender();
+    }
+}
         
     public getCliente(): Cliente {
         return this.cliente;
