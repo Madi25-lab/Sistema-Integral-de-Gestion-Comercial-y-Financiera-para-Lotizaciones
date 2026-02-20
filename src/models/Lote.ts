@@ -4,7 +4,7 @@ export class Lote {
     private estado: EstadoLote;
 
     constructor(
-        private id: number,
+        private idLote: number,
         private lote:string,
         private precio: number
     ) {
@@ -42,4 +42,8 @@ export class Lote {
     public getPrecio(): number {
         return this.precio;
     }
+
+    public getIdLote(): number {
+    return this.idLote;
+}
 }

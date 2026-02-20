@@ -9,7 +9,7 @@ export class Venta {
     private planPago?: PlanPago;
 
     constructor(
-        private id: number,
+        private idVenta: number,
         private cliente: Cliente,
         private lote: Lote,
         private tipo: TipoVenta,
