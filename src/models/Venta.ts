@@ -1,3 +1,4 @@
+import { Asesor } from "./Asesor";
 import { Cliente } from "./Cliente";
 import { Lote } from "./Lote";
 import { TipoVenta } from "../enums/TipoVenta";
@@ -9,12 +10,13 @@ export class Venta {
     private planPago?: PlanPago;
 
     constructor(
-        private idVenta: number,
-        private cliente: Cliente,
-        private lote: Lote,
-        private tipo: TipoVenta,
-        numeroCuotas?: number
-    ) {
+    private idVenta: number,
+    private asesor: Asesor,
+    private cliente: Cliente,
+    private lote: Lote,
+    private tipo: TipoVenta,
+    numeroCuotas?: number
+) {
 
         // Siempre debe estar reservado antes
         if (lote.getEstado() !== EstadoLote.RESERVADO) {
@@ -45,7 +47,10 @@ export class Venta {
         this.lote.vender();
     }
 }
-        
+    public getAsesor(): Asesor {
+    return this.asesor;
+    }
+
     public getCliente(): Cliente {
         return this.cliente;
     }

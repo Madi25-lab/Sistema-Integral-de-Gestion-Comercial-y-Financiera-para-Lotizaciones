@@ -14,7 +14,7 @@ export class SistemaInmobiliario {
     private contadorVentas: number = 1;
 
     // =========================
-    // REGISTRAR CLIENTE
+    // REGISTRAR ASESOR
     // =========================
     public registrarAsesor(
     nombre: string,
@@ -103,11 +103,7 @@ export class SistemaInmobiliario {
     }
 
     const venta = new Venta(
-        this.contadorVentas++,
-        cliente,
-        lote,
-        tipo,
-        numeroCuotas
+        this.contadorVentas++, asesor, cliente, lote, tipo, numeroCuotas
     );
 
     this.ventas.push(venta);
