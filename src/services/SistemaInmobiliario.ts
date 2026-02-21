@@ -8,62 +8,89 @@ export class SistemaInmobiliario {
     private clientes: Cliente[] = [];
     private lotes: Lote[] = [];
     private ventas: Venta[] = [];
+
     private contadorClientes: number = 1;
+    private contadorLotes: number = 1;
     private contadorVentas: number = 1;
 
-    // Registrar cliente
+    // =========================
+    // REGISTRAR CLIENTE
+    // =========================
     public registrarCliente(
-    nombre: string,
-    dni: string,
-    celular: string,
-    direccion: string
-): Cliente {
+        nombre: string,
+        dni: string,
+        celular: string,
+        direccion: string
+    ): Cliente {
 
-    const cliente = new Cliente(
-        this.contadorClientes++,
-        nombre,
-        dni,
-        celular,
-        direccion
-    );
+        const existe = this.clientes.some(c => c.getDni() === dni);
 
-    this.clientes.push(cliente);
-    return cliente;
-}
+        if (existe) {
+            throw new Error("Ya existe un cliente con ese DNI.");
+        }
 
-    // Registrar lote
-    public registrarLote(lote: Lote): void {
-        this.lotes.push(lote);
+        const cliente = new Cliente(
+            this.contadorClientes++, nombre, dni, celular, direccion
+        );
+
+        this.clientes.push(cliente);
+        return cliente;
     }
 
-    // Buscar lote por ID
+    // =========================
+    // REGISTRAR LOTE
+    // =========================
+    public registrarLote(
+    nombreLote: string,
+    precio: number
+    ): Lote {
+
+        const lote = new Lote(
+            this.contadorLotes++, nombreLote, precio
+        );
+
+        this.lotes.push(lote);
+        return lote;
+}
+
+    // =========================
+    // BUSCAR LOTE POR ID
+    // =========================
     public buscarLotePorId(id: number): Lote | undefined {
         return this.lotes.find(l => l.getIdLote() === id);
     }
 
-    // Crear venta
+    // =========================
+    // CREAR VENTA
+    // =========================
     public crearVenta(
-    clienteId: number,
-    loteId: number,
-    tipo: TipoVenta,
-    numeroCuotas?: number
+        clienteId: number,
+        loteId: number,
+        tipo: TipoVenta,
+        numeroCuotas?: number
     ): Venta {
 
-    const cliente = this.clientes.find(c => c.getId() === clienteId);
-    const lote = this.lotes.find(l => l.getIdLote() === loteId);
+        const cliente = this.clientes.find(c => c.getId() === clienteId);
+        const lote = this.lotes.find(l => l.getIdLote() === loteId);
 
-    if (!cliente) throw new Error("Cliente no encontrado.");
-    if (!lote) throw new Error("Lote no encontrado.");
+        if (!cliente) {
+            throw new Error("Cliente no encontrado.");
+        }
 
-    const venta = new Venta(
-        this.contadorVentas++,
-        cliente,
-        lote,
-        tipo,
-        numeroCuotas
-    );
+        if (!lote) {
+            throw new Error("Lote no encontrado.");
+        }
 
-    this.ventas.push(venta);
-    return venta;
+        // Refuerzo adicional de seguridad
+        if (!lote.estaReservado()) {
+            throw new Error("El lote debe estar reservado antes de generar la venta.");
+        }
+
+        const venta = new Venta(
+            this.contadorVentas++, cliente, lote, tipo, numeroCuotas
+        );
+
+        this.ventas.push(venta);
+        return venta;
     }
 }
