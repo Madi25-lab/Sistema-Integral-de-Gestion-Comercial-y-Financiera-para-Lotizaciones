@@ -43,15 +43,27 @@ export class SistemaInmobiliario {
 
     // Crear venta
     public crearVenta(
-        idVenta: number,
-        cliente: Cliente,
-        lote: Lote,
-        tipo: TipoVenta,
-        numeroCuotas?: number
+    clienteId: number,
+    loteId: number,
+    tipo: TipoVenta,
+    numeroCuotas?: number
     ): Venta {
 
-        const venta = new Venta(idVenta, cliente, lote, tipo, numeroCuotas);
-        this.ventas.push(venta);
-        return venta;
+    const cliente = this.clientes.find(c => c.getId() === clienteId);
+    const lote = this.lotes.find(l => l.getIdLote() === loteId);
+
+    if (!cliente) throw new Error("Cliente no encontrado.");
+    if (!lote) throw new Error("Lote no encontrado.");
+
+    const venta = new Venta(
+        this.contadorVentas++,
+        cliente,
+        lote,
+        tipo,
+        numeroCuotas
+    );
+
+    this.ventas.push(venta);
+    return venta;
     }
 }
