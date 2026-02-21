@@ -1,41 +1,42 @@
-import { Cliente } from "../models/Cliente";
+import { Asesor } from "../models/Asesor";
 import { Lote } from "../models/Lote";
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
 
 export class SistemaInmobiliario {
 
-    private clientes: Cliente[] = [];
+    private asesores: Asesor[] = [];
     private lotes: Lote[] = [];
     private ventas: Venta[] = [];
 
-    private contadorClientes: number = 1;
+    private contadorAsesores: number = 1;
     private contadorLotes: number = 1;
     private contadorVentas: number = 1;
 
     // =========================
     // REGISTRAR CLIENTE
     // =========================
-    public registrarCliente(
-        nombre: string,
-        dni: string,
-        celular: string,
-        direccion: string
-    ): Cliente {
+    public registrarAsesor(
+    nombre: string,
+    usuario: string,
+    contraseña: string
+): Asesor {
 
-        const existe = this.clientes.some(c => c.getDni() === dni);
-
-        if (existe) {
-            throw new Error("Ya existe un cliente con ese DNI.");
-        }
-
-        const cliente = new Cliente(
-            this.contadorClientes++, nombre, dni, celular, direccion
-        );
-
-        this.clientes.push(cliente);
-        return cliente;
+    const existe = this.asesores.some(a => a.getUsuario() === usuario);
+    if (existe) {
+        throw new Error("Ya existe un asesor con ese usuario.");
     }
+
+    const asesor = new Asesor(
+        this.contadorAsesores++,
+        nombre,
+        usuario,
+        contraseña
+    );
+
+    this.asesores.push(asesor);
+    return asesor;
+}
 
     // =========================
     // REGISTRAR LOTE
@@ -75,35 +76,45 @@ export class SistemaInmobiliario {
     // CREAR VENTA
     // =========================
     public crearVenta(
-        clienteId: number,
-        loteId: number,
-        tipo: TipoVenta,
-        numeroCuotas?: number
-    ): Venta {
+    asesorId: number,
+    clienteId: number,
+    loteId: number,
+    tipo: TipoVenta,
+    numeroCuotas?: number
+): Venta {
 
-        const cliente = this.clientes.find(c => c.getId() === clienteId);
-        const lote = this.lotes.find(l => l.getIdLote() === loteId);
-
-        if (!cliente) {
-            throw new Error("Cliente no encontrado.");
-        }
-
-        if (!lote) {
-            throw new Error("Lote no encontrado.");
-        }
-
-        // Refuerzo adicional de seguridad
-        if (!lote.estaReservado()) {
-            throw new Error("El lote debe estar reservado antes de generar la venta.");
-        }
-
-        const venta = new Venta(
-            this.contadorVentas++, cliente, lote, tipo, numeroCuotas
-        );
-
-        this.ventas.push(venta);
-        return venta;
+    const asesor = this.asesores.find(a => a.getId() === asesorId);
+    if (!asesor) {
+        throw new Error("Asesor no encontrado.");
     }
+
+    const cliente = asesor.buscarClientePorId(clienteId);
+    if (!cliente) {
+        throw new Error("Cliente no encontrado para este asesor.");
+    }
+
+    const lote = this.lotes.find(l => l.getIdLote() === loteId);
+    if (!lote) {
+        throw new Error("Lote no encontrado.");
+    }
+
+    if (!lote.estaReservado()) {
+        throw new Error("El lote debe estar reservado antes de generar la venta.");
+    }
+
+    const venta = new Venta(
+        this.contadorVentas++,
+        cliente,
+        lote,
+        tipo,
+        numeroCuotas
+    );
+
+    this.ventas.push(venta);
+    asesor.agregarVenta(venta);
+
+    return venta;
+}
 
     // =========================
     // BUSCAR LOTE
