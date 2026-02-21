@@ -35,15 +35,43 @@ export class Lote {
         this.estado = EstadoLote.VENDIDO;
     }
 
-    public getEstado(): EstadoLote {
-        return this.estado;
+    // =========================
+    // MÉTODOS DE VALIDACIÓN
+    // =========================
+
+    public estaDisponible(): boolean {
+        return this.estado === EstadoLote.DISPONIBLE;
+    }
+
+    public estaReservado(): boolean {
+        return this.estado === EstadoLote.RESERVADO;
+    }
+
+    public estaEnFinanciamiento(): boolean {
+        return this.estado === EstadoLote.EN_FINANCIAMIENTO;
+    }
+
+    public estaVendido(): boolean {
+        return this.estado === EstadoLote.VENDIDO;
+    }
+
+    // =========================
+    // GETTERS
+    // =========================
+
+    public getIdLote(): number {
+        return this.idLote;
+    }
+
+    public getNLote(): string {
+        return this.lote;
     }
 
     public getPrecio(): number {
         return this.precio;
     }
 
-    public getIdLote(): number {
-    return this.idLote;
-}
+    public getEstado(): EstadoLote {
+        return this.estado;
+    }
 }

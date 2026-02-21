@@ -54,11 +54,22 @@ export class SistemaInmobiliario {
 }
 
     // =========================
-    // BUSCAR LOTE POR ID
+    // RESERVAR LOTE
     // =========================
-    public buscarLotePorId(id: number): Lote | undefined {
-        return this.lotes.find(l => l.getIdLote() === id);
+    public reservarLote(loteId: number): void {
+        const lote = this.buscarLotePorId(loteId);
+
+        if (!lote) {
+            throw new Error("Lote no encontrado.");
+        }
+
+        if (!lote.estaDisponible()) {
+            throw new Error("El lote no está disponible.");
+        }
+
+        lote.reservar();
     }
+
 
     // =========================
     // CREAR VENTA
@@ -92,5 +103,12 @@ export class SistemaInmobiliario {
 
         this.ventas.push(venta);
         return venta;
+    }
+
+    // =========================
+    // BUSCAR LOTE
+    // =========================
+    public buscarLotePorId(id: number): Lote | undefined {
+        return this.lotes.find(l => l.getIdLote() === id);
     }
 }
