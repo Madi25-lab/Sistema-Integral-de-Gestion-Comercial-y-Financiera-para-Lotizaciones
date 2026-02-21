@@ -1,42 +1,52 @@
 import { EstadoLote } from "../enums/EstadoLote";
 
 export class Lote {
+
     private estado: EstadoLote;
 
     constructor(
         private idLote: number,
-        private lote:string,
+        private lote: string,
         private precio: number
     ) {
         this.estado = EstadoLote.DISPONIBLE;
     }
 
+    // =========================
+    // CAMBIOS DE ESTADO
+    // =========================
+
     public reservar(): void {
-        if (this.estado !== EstadoLote.DISPONIBLE) {
+        if (!this.estaDisponible()) {
             throw new Error("El lote no está disponible para reservar.");
         }
         this.estado = EstadoLote.RESERVADO;
     }
 
     public activarFinanciamiento(): void {
-        if (this.estado !== EstadoLote.RESERVADO) {
+        if (!this.estaReservado()) {
             throw new Error("Solo un lote reservado puede pasar a financiamiento.");
         }
         this.estado = EstadoLote.EN_FINANCIAMIENTO;
     }
 
     public vender(): void {
-        if (
-            this.estado !== EstadoLote.RESERVADO &&
-            this.estado !== EstadoLote.EN_FINANCIAMIENTO
-        ) {
+        if (!this.estaReservado() && !this.estaEnFinanciamiento()) {
             throw new Error("El lote no puede venderse en su estado actual.");
         }
         this.estado = EstadoLote.VENDIDO;
     }
 
+    public liberar(): void {
+        if (this.estaDisponible()) {
+            throw new Error("El lote ya está disponible.");
+        }
+
+        this.estado = EstadoLote.DISPONIBLE;
+    }
+
     // =========================
-    // MÉTODOS DE VALIDACIÓN
+    // VALIDACIONES
     // =========================
 
     public estaDisponible(): boolean {
@@ -63,7 +73,7 @@ export class Lote {
         return this.idLote;
     }
 
-    public getNLote(): string {
+    public getLote(): string {
         return this.lote;
     }
 
