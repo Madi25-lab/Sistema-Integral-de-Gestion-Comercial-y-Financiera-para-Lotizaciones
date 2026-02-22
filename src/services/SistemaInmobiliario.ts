@@ -2,12 +2,19 @@ import { Asesor } from "../models/Asesor";
 import { Lote } from "../models/Lote";
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
+import { TipoDistribucion } from "../enums/TipoDistribucion";
 
 export class SistemaInmobiliario {
 
     private asesores: Asesor[] = [];
     private lotes: Lote[] = [];
     private ventas: Venta[] = [];
+    private preciosPorUbicacion: Map<TipoDistribucion, number> = new Map([
+    [TipoDistribucion.PASAJE, 200],
+    [TipoDistribucion.AVENIDA, 300],
+    [TipoDistribucion.ESQUINA, 350],
+    [TipoDistribucion.FRENTE_PARQUE, 400],
+]);
 
     private contadorAsesores: number = 1;
     private contadorLotes: number = 1;
@@ -41,26 +48,30 @@ export class SistemaInmobiliario {
     // =========================
     // REGISTRAR LOTE
     // =========================
-    public registrarLote(nombreLote: string, precio: number
-    ): Lote {
+    public registrarLote(
+    nombre: string,
+    tamanio: number,
+    ubicacion: string,
+    tipoDistribucion: TipoDistribucion
+): Lote {
 
-        if (precio <= 0) {
-            throw new Error("El precio debe ser mayor a cero.");
-        }
+    const precioMetro = this.preciosPorUbicacion.get(tipoDistribucion);
 
-        const lote = new Lote(
-            this.contadorLotes++,
-            nombreLote,
-            precio
-        );
-
-        this.lotes.push(lote);
-        return lote;
+    if (!precioMetro) {
+        throw new Error("No existe precio definido para esta ubicación.");
     }
+
+    const lote = new Lote(
+        this.contadorLotes++, nombre, tamanio, ubicacion, tipoDistribucion, precioMetro
+    );
+
+    this.lotes.push(lote);
+    return lote;
+}
 
     // =========================
     // RESERVAR LOTE
-    // =========================
+    // =============public registrarLote(
     public reservarLote(loteId: number): void {
 
         const lote = this.buscarLotePorId(loteId);
@@ -75,6 +86,7 @@ export class SistemaInmobiliario {
 
         lote.reservar();
     }
+
 
     // =========================
     // CREAR VENTA
