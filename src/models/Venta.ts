@@ -4,11 +4,13 @@ import { Lote } from "./Lote";
 import { TipoVenta } from "../enums/TipoVenta";
 import { PlanPago } from "./PlanPago";
 import { EstadoVenta } from "../enums/EstadoVenta";
+import { Penalidad } from "./Penalidad";
 
 export class Venta {
 
     private planPago: PlanPago | null = null;
     private estado: EstadoVenta;
+    private penalidad: Penalidad | null = null;
 
     constructor(
         private idVenta: number,
@@ -65,19 +67,35 @@ export class Venta {
     // ANULACIÓN
     // =========================
 
-    public anularVenta(multa: number): void {
+    public anularVenta(porcentajePenalidad: number): number {
 
         if (this.estado === EstadoVenta.ANULADA) {
             throw new Error("La venta ya fue anulada.");
         }
 
+        if (this.tipo === TipoVenta.CONTADO) {
+            throw new Error("No se puede anular una venta al contado.");
+        }
+
+        if (!this.planPago) {
+            throw new Error("No existe plan de pago.");
+        }
+
+        const totalPagado = this.planPago.obtenerTotalPagado();
+
+        this.penalidad = new Penalidad(
+            porcentajePenalidad,
+            this.lote.getPrecio(),
+            totalPagado
+        );
+
+        const devolucion = this.penalidad.getDevolucion();
+
         this.estado = EstadoVenta.ANULADA;
-
         this.lote.liberar();
-
         this.planPago = null;
 
-        console.log(`Se aplicó una penalidad de S/. ${multa}`);
+        return devolucion;
     }
 
     // =========================
@@ -110,5 +128,9 @@ export class Venta {
 
     public getEstado(): EstadoVenta {
         return this.estado;
+    }
+
+    public getPenalidad(): Penalidad | null {
+        return this.penalidad;
     }
 }
