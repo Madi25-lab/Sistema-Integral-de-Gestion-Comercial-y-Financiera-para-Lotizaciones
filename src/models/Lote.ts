@@ -1,47 +1,51 @@
 import { EstadoLote } from "../enums/EstadoLote";
+import { TipoDistribucion } from "../enums/TipoDistribucion";
 
 export class Lote {
 
     private estado: EstadoLote;
+    private precioFinal: number;
 
     constructor(
         private idLote: number,
-        private lote: string,
-        private precio: number
+        private nombre: string,
+        private tamanio: number,
+        private ubicacion: string,
+        private tipoDistribucion: TipoDistribucion,
+        private precioMetro: number
     ) {
+
+        if (tamanio <= 0) {
+            throw new Error("El tamaño debe ser mayor a cero.");
+        }
+
         this.estado = EstadoLote.DISPONIBLE;
+        this.precioFinal = this.tamanio * this.precioMetro;
     }
 
     // =========================
-    // CAMBIOS DE ESTADO
+    // ESTADOS
     // =========================
 
     public reservar(): void {
         if (!this.estaDisponible()) {
-            throw new Error("El lote no está disponible para reservar.");
+            throw new Error("El lote no está disponible.");
         }
         this.estado = EstadoLote.RESERVADO;
     }
 
     public activarFinanciamiento(): void {
         if (!this.estaReservado()) {
-            throw new Error("Solo un lote reservado puede pasar a financiamiento.");
+            throw new Error("Solo un lote reservado puede financiarse.");
         }
         this.estado = EstadoLote.EN_FINANCIAMIENTO;
     }
 
     public vender(): void {
-        if (!this.estaReservado() && !this.estaEnFinanciamiento()) {
-            throw new Error("El lote no puede venderse en su estado actual.");
-        }
         this.estado = EstadoLote.VENDIDO;
     }
 
     public liberar(): void {
-        if (this.estaDisponible()) {
-            throw new Error("El lote ya está disponible.");
-        }
-
         this.estado = EstadoLote.DISPONIBLE;
     }
 
@@ -73,15 +77,23 @@ export class Lote {
         return this.idLote;
     }
 
-    public getLote(): string {
-        return this.lote;
+    public getNombre(): string {
+        return this.nombre;
+    }
+
+    public getTamanio(): number {
+        return this.tamanio;
+    }
+
+    public getUbicacion(): string {
+        return this.ubicacion;
+    }
+
+    public getTipoDistribucion(): TipoDistribucion {
+        return this.tipoDistribucion;
     }
 
     public getPrecio(): number {
-        return this.precio;
-    }
-
-    public getEstado(): EstadoLote {
-        return this.estado;
+        return this.precioFinal;
     }
 }
