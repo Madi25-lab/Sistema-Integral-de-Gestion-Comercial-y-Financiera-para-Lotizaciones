@@ -14,12 +14,41 @@ export class Asesor {
         private contraseña: string
     ) {}
 
-    // Registrar cliente propio
+    // =========================
+    // GETTERS
+    // =========================
+
+    public getId(): number {
+        return this.id;
+    }
+
+    public getNombre(): string {
+        return this.nombre;
+    }
+
+    public getUsuario(): string {
+        return this.usuario;
+    }
+
+    // ❌ NO exponemos getContraseña por seguridad
+
+    // =========================
+    // LOGIN
+    // =========================
+
+    public validarCredenciales(usuario: string, contraseña: string): boolean {
+        return this.usuario === usuario && this.contraseña === contraseña;
+    }
+
+    // =========================
+    // CLIENTES
+    // =========================
+
     public registrarCliente(
         nombre: string,
         dni: string,
-        celular: string,
-        direccion: string
+        direccion: string,
+        telefono: string
     ): Cliente {
 
         const existe = this.clientes.some(c => c.getDni() === dni);
@@ -31,31 +60,31 @@ export class Asesor {
             this.contadorClientes++,
             nombre,
             dni,
-            celular,
-            direccion
+            direccion,
+            telefono
         );
 
         this.clientes.push(cliente);
         return cliente;
     }
 
-    public agregarVenta(venta: Venta): void {
-        this.ventas.push(venta);
-    }
-
     public buscarClientePorId(id: number): Cliente | undefined {
         return this.clientes.find(c => c.getId() === id);
     }
 
-    public getId(): number {
-        return this.id;
+    public getClientes(): Cliente[] {
+        return this.clientes;
     }
 
-    public getUsuario(): string {
-        return this.usuario;
+    // =========================
+    // VENTAS
+    // =========================
+
+    public agregarVenta(venta: Venta): void {
+        this.ventas.push(venta);
     }
 
-    public getContraseña(): string {
-        return this.contraseña;
+    public getVentas(): Venta[] {
+        return this.ventas;
     }
 }
