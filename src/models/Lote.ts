@@ -1,5 +1,6 @@
 import { EstadoLote } from "../enums/EstadoLote";
 import { TipoDistribucion } from "../enums/TipoDistribucion";
+import { Zona } from "../enums/Zona";
 
 export class Lote {
 
@@ -11,6 +12,7 @@ export class Lote {
         private nombre: string,
         private tamanio: number,
         private ubicacion: string,
+        private zona: Zona,
         private tipoDistribucion: TipoDistribucion,
         private precioMetro: number
     ) {
@@ -23,62 +25,16 @@ export class Lote {
         this.precioFinal = this.tamanio * this.precioMetro;
     }
 
-    // =========================
-    // ESTADOS
-    // =========================
-
-    public reservar(): void {
-        if (!this.estaDisponible()) {
-            throw new Error("El lote no está disponible.");
-        }
-        this.estado = EstadoLote.RESERVADO;
+    public getZona(): Zona {
+        return this.zona;
     }
 
-    public activarFinanciamiento(): void {
-        if (!this.estaReservado()) {
-            throw new Error("Solo un lote reservado puede financiarse.");
-        }
-        this.estado = EstadoLote.EN_FINANCIAMIENTO;
+    public getTipoDistribucion(): TipoDistribucion {
+        return this.tipoDistribucion;
     }
 
-    public vender(): void {
-        this.estado = EstadoLote.VENDIDO;
-    }
-
-    public liberar(): void {
-        this.estado = EstadoLote.DISPONIBLE;
-    }
-
-    // =========================
-    // VALIDACIONES
-    // =========================
-
-    public estaDisponible(): boolean {
-        return this.estado === EstadoLote.DISPONIBLE;
-    }
-
-    public estaReservado(): boolean {
-        return this.estado === EstadoLote.RESERVADO;
-    }
-
-    public estaEnFinanciamiento(): boolean {
-        return this.estado === EstadoLote.EN_FINANCIAMIENTO;
-    }
-
-    public estaVendido(): boolean {
-        return this.estado === EstadoLote.VENDIDO;
-    }
-
-    // =========================
-    // GETTERS
-    // =========================
-
-    public getIdLote(): number {
-        return this.idLote;
-    }
-
-    public getNombre(): string {
-        return this.nombre;
+    public getPrecio(): number {
+        return this.precioFinal;
     }
 
     public getTamanio(): number {
@@ -89,11 +45,22 @@ export class Lote {
         return this.ubicacion;
     }
 
-    public getTipoDistribucion(): TipoDistribucion {
-        return this.tipoDistribucion;
+    public getIdLote(): number {
+        return this.idLote;
     }
 
-    public getPrecio(): number {
-        return this.precioFinal;
+    public getEstado(): EstadoLote {
+        return this.estado;
+    }
+
+    public reservar(): void {
+        if (!this.estaDisponible()) {
+            throw new Error("No disponible.");
+        }
+        this.estado = EstadoLote.RESERVADO;
+    }
+
+    public estaDisponible(): boolean {
+        return this.estado === EstadoLote.DISPONIBLE;
     }
 }
