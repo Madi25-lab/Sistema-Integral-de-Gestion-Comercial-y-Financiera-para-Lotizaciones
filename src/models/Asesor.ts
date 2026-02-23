@@ -1,43 +1,20 @@
+import { Usuario } from "./Usuario";
 import { Cliente } from "./Cliente";
 import { Venta } from "./Venta";
 
-export class Asesor {
+export class Asesor extends Usuario {
 
     private clientes: Cliente[] = [];
     private ventas: Venta[] = [];
     private contadorClientes: number = 1;
 
     constructor(
-        private id: number,
-        private nombre: string,
-        private usuario: string,
-        private contraseña: string
-    ) {}
-
-    // =========================
-    // GETTERS
-    // =========================
-
-    public getId(): number {
-        return this.id;
-    }
-
-    public getNombre(): string {
-        return this.nombre;
-    }
-
-    public getUsuario(): string {
-        return this.usuario;
-    }
-
-    // ❌ NO exponemos getContraseña por seguridad
-
-    // =========================
-    // LOGIN
-    // =========================
-
-    public validarCredenciales(usuario: string, contraseña: string): boolean {
-        return this.usuario === usuario && this.contraseña === contraseña;
+        id: number,
+        nombre: string,
+        usuario: string,
+        contraseña: string
+    ) {
+        super(id, nombre, usuario, contraseña);
     }
 
     // =========================
@@ -53,7 +30,7 @@ export class Asesor {
 
         const existe = this.clientes.some(c => c.getDni() === dni);
         if (existe) {
-            throw new Error("Ya existe un cliente con ese DNI para este asesor.");
+            throw new Error("Ya existe un cliente con ese DNI.");
         }
 
         const cliente = new Cliente(
@@ -68,20 +45,16 @@ export class Asesor {
         return cliente;
     }
 
-    public buscarClientePorId(id: number): Cliente | undefined {
-        return this.clientes.find(c => c.getId() === id);
+    public buscarClientePorId(id: number) {
+    return this.clientes.find(c => c.getId() === id);
+}
+
+    public agregarVenta(venta: Venta): void {
+        this.ventas.push(venta);
     }
 
     public getClientes(): Cliente[] {
         return this.clientes;
-    }
-
-    // =========================
-    // VENTAS
-    // =========================
-
-    public agregarVenta(venta: Venta): void {
-        this.ventas.push(venta);
     }
 
     public getVentas(): Venta[] {
