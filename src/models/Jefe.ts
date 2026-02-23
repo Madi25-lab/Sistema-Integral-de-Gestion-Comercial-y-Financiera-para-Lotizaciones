@@ -1,17 +1,15 @@
-export class Jefe {
+import { Usuario } from "./Usuario";
+
+export class Jefe extends Usuario {
 
     constructor(
-        private id: number,
-        private nombre: string,
-        private usuario: string,
-        private contraseña: string
-    ) {}
-
-    public getUsuario(): string {
-        return this.usuario;
+        id: number,
+        nombre: string,
+        usuario: string,
+        contraseña: string
+    ) {
+        super(id, nombre, usuario, contraseña);
     }
 
-    public validarCredenciales(usuario: string, contraseña: string): boolean {
-        return this.usuario === usuario && this.contraseña === contraseña;
-    }
+    // Aquí luego agregaremos métodos exclusivos del jefe
 }
