@@ -67,18 +67,20 @@ export class SistemaInmobiliario {
     // LOGIN
     // =========================
 
-    public login(usuario: string, contraseña: string): void {
+    public login(usuario: string, contraseña: string): Usuario {
 
-        const usuarioEncontrado = this.usuarios.find(u =>
-            u.validarCredenciales(usuario, contraseña)
-        );
+    const usuarioEncontrado = this.usuarios.find(u =>
+        u.validarCredenciales(usuario, contraseña)
+    );
 
-        if (!usuarioEncontrado) {
-            throw new Error("Credenciales incorrectas.");
-        }
-
-        this.usuarioLogueado = usuarioEncontrado;
+    if (!usuarioEncontrado) {
+        throw new Error("Credenciales incorrectas.");
     }
+
+    this.usuarioLogueado = usuarioEncontrado;
+
+    return usuarioEncontrado;
+}
 
     public logout(): void {
         this.usuarioLogueado = null;
