@@ -33,37 +33,14 @@ export class Lote {
     // GETTERS
     // =========================
 
-    public getIdLote(): number {
-        return this.idLote;
-    }
-
-    public getNombre(): string {
-        return this.nombre;
-    }
-
-    public getZona(): Zona {
-        return this.zona;
-    }
-
-    public getTipoDistribucion(): TipoDistribucion {
-        return this.tipoDistribucion;
-    }
-
-    public getPrecio(): number {
-        return this.precioFinal;
-    }
-
-    public getTamanio(): number {
-        return this.tamanio;
-    }
-
-    public getUbicacion(): string {
-        return this.ubicacion;
-    }
-
-    public getEstado(): EstadoLote {
-        return this.estado;
-    }
+    public getIdLote(): number { return this.idLote; }
+    public getNombre(): string { return this.nombre; }
+    public getZona(): Zona { return this.zona; }
+    public getTipoDistribucion(): TipoDistribucion { return this.tipoDistribucion; }
+    public getPrecio(): number { return this.precioFinal; }
+    public getTamanio(): number { return this.tamanio; }
+    public getUbicacion(): string { return this.ubicacion; }
+    public getEstado(): EstadoLote { return this.estado; }
 
     // =========================
     // CAMBIOS DE ESTADO
@@ -76,6 +53,13 @@ export class Lote {
         this.estado = EstadoLote.RESERVADO;
     }
 
+    public activarFinanciamiento(): void {
+        if (!this.estaReservado()) {
+            throw new Error("El lote debe estar reservado para financiarse.");
+        }
+        // Se mantiene como reservado hasta terminar de pagar
+    }
+
     public vender(): void {
         if (!this.estaReservado()) {
             throw new Error("El lote debe estar reservado antes de venderse.");
@@ -84,11 +68,14 @@ export class Lote {
     }
 
     public liberar(): void {
+        if (this.estado === EstadoLote.VENDIDO) {
+            throw new Error("No se puede liberar un lote vendido.");
+        }
         this.estado = EstadoLote.DISPONIBLE;
     }
 
     // =========================
-    // VALIDACIONES DE ESTADO
+    // VALIDACIONES
     // =========================
 
     public estaDisponible(): boolean {
