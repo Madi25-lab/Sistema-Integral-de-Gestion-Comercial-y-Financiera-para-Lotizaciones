@@ -11,5 +11,9 @@ export class Jefe extends Usuario {
         super(id, nombre, usuario, contraseña);
     }
 
+    public getTipo(): string {
+    return "JEFE";
+}
+
     // Aquí luego agregaremos métodos exclusivos del jefe
 }

@@ -1,4 +1,6 @@
-export abstract class Usuario {
+import { Identificable } from "../interfaces/Identificable";
+
+export abstract class Usuario implements Identificable {
 
     constructor(
         protected id: number,
@@ -7,14 +9,6 @@ export abstract class Usuario {
         protected contraseña: string
     ) {}
 
-    public getId(): number {
-        return this.id;
-    }
-
-    public getNombre(): string {
-        return this.nombre;
-    }
-
     public getUsuario(): string {
         return this.usuario;
     }
@@ -22,4 +16,7 @@ export abstract class Usuario {
     public validarCredenciales(usuario: string, contraseña: string): boolean {
         return this.usuario === usuario && this.contraseña === contraseña;
     }
+
+    // Método abstracto obligatorio
+    public abstract getTipo(): string;
 }

@@ -49,6 +49,10 @@ export class Asesor extends Usuario {
     return this.clientes.find(c => c.getId() === id);
 }
 
+    public getTipo(): string {
+    return "ASESOR";
+}
+
     public agregarVenta(venta: Venta): void {
         this.ventas.push(venta);
     }
