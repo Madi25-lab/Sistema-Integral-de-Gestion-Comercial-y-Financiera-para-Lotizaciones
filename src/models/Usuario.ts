@@ -32,7 +32,7 @@ export abstract class Usuario implements Identificable {
     public validarCredenciales(usuario: string, contraseña: string): boolean {
 
         if (this.bloqueado) {
-            return false;
+            throw new Error("Usuario bloqueado.");
         }
 
         if (this.usuario === usuario && this.contraseña === contraseña) {
