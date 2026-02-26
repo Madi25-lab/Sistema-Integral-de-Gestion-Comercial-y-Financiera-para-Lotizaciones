@@ -1,3 +1,5 @@
+import { TipoUsuario } from "../enums/TipoUsuario";
+
 export interface Identificable {
-    getTipo(): string;
+    getTipo(): TipoUsuario;
 }
