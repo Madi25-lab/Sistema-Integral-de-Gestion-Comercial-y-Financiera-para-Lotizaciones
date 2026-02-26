@@ -3,27 +3,12 @@ import { Cuota } from "./Cuota";
 export class PlanPago {
 
     private cuotas: Cuota[] = [];
-    private tasaInteresDiaria: number;
 
     constructor(
         private montoTotal: number,
         private numeroCuotas: number,
-        tasaInteresDiaria: number
+        private tasaInteresDiaria: number
     ) {
-
-        if (montoTotal <= 0) {
-            throw new Error("El monto total debe ser mayor a cero.");
-        }
-
-        if (numeroCuotas <= 0) {
-            throw new Error("El número de cuotas debe ser mayor a cero.");
-        }
-
-        if (tasaInteresDiaria < 0) {
-            throw new Error("La tasa de interés no puede ser negativa.");
-        }
-
-        this.tasaInteresDiaria = tasaInteresDiaria;
 
         const montoPorCuota = parseFloat(
             (montoTotal / numeroCuotas).toFixed(2)
@@ -33,11 +18,11 @@ export class PlanPago {
 
         for (let i = 1; i <= numeroCuotas; i++) {
 
-            const fechaVencimiento = new Date(fechaBase);
-            fechaVencimiento.setMonth(fechaBase.getMonth() + i);
+            const fecha = new Date(fechaBase);
+            fecha.setMonth(fechaBase.getMonth() + i);
 
             this.cuotas.push(
-                new Cuota(i, montoPorCuota, fechaVencimiento)
+                new Cuota(i, montoPorCuota, fecha)
             );
         }
     }
@@ -45,25 +30,16 @@ export class PlanPago {
     public pagarCuota(numero: number, fechaPago: Date): void {
 
         const cuota = this.cuotas.find(c => c.getNumero() === numero);
-
-        if (!cuota) {
-            throw new Error("Cuota no encontrada.");
-        }
+        if (!cuota) throw new Error("Cuota no encontrada.");
 
         cuota.pagar(fechaPago, this.tasaInteresDiaria);
     }
 
     public modificarTasaInteres(nuevaTasa: number): void {
-        if (nuevaTasa < 0) {
-            throw new Error("La tasa no puede ser negativa.");
+        if (nuevaTasa < 0 || nuevaTasa > 1) {
+            throw new Error("Tasa inválida.");
         }
         this.tasaInteresDiaria = nuevaTasa;
-    }
-
-    public obtenerSaldoPendiente(): number {
-        return this.cuotas
-            .filter(c => !c.estaPagada())
-            .reduce((total, c) => total + c.getMontoBase(), 0);
     }
 
     public obtenerTotalPagado(): number {
