@@ -1,4 +1,6 @@
 import { Usuario } from "./Usuario";
+import { TipoUsuario } from "../enums/TipoUsuario";
+import { PlanPago } from "./PlanPago";
 
 export class Jefe extends Usuario {
 
@@ -11,9 +13,13 @@ export class Jefe extends Usuario {
         super(id, nombre, usuario, contraseña);
     }
 
-    public getTipo(): string {
-    return "JEFE";
+    public getTipo(): TipoUsuario {
+    return TipoUsuario.JEFE;
 }
 
-    // Aquí luego agregaremos métodos exclusivos del jefe
+    public cambiarTasaInteres(plan: PlanPago, nuevaTasa: number): void {
+        plan.modificarTasaInteres(nuevaTasa);
+        }
 }
+
+    
