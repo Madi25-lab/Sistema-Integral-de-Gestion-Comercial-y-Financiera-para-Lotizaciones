@@ -1,10 +1,7 @@
 import { Identificable } from "../interfaces/Identificable";
+import { TipoUsuario } from "../enums/TipoUsuario";
 
 export abstract class Usuario implements Identificable {
-
-    private intentosFallidos: number = 0;
-    private bloqueado: boolean = false;
-    private readonly MAX_INTENTOS = 3;
 
     constructor(
         protected id: number,
@@ -13,45 +10,21 @@ export abstract class Usuario implements Identificable {
         protected contraseña: string
     ) {}
 
-    public getId(): number {
-        return this.id;
-    }
-
-    public getNombre(): string {
-        return this.nombre;
+    public validarCredenciales(
+        usuario: string,
+        contraseña: string
+    ): boolean {
+        return this.usuario === usuario &&
+               this.contraseña === contraseña;
     }
 
     public getUsuario(): string {
         return this.usuario;
     }
 
-    public estaBloqueado(): boolean {
-        return this.bloqueado;
+    public getNombre(): string {
+        return this.nombre;
     }
 
-    public validarCredenciales(usuario: string, contraseña: string): boolean {
-
-        if (this.bloqueado) {
-            throw new Error("Usuario bloqueado.");
-        }
-
-        if (this.usuario === usuario && this.contraseña === contraseña) {
-            this.intentosFallidos = 0;
-            return true;
-        }
-
-        this.intentosFallidos++;
-
-        if (this.intentosFallidos >= this.MAX_INTENTOS) {
-            this.bloqueado = true;
-        }
-
-        return false;
-    }
-
-    public getIntentosRestantes(): number {
-        return this.MAX_INTENTOS - this.intentosFallidos;
-    }
-
-    public abstract getTipo(): string;
+    public abstract getTipo(): TipoUsuario;
 }
