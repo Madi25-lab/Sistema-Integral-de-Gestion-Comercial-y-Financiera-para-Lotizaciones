@@ -1,4 +1,5 @@
 import { Usuario } from "./Usuario";
+import { TipoUsuario } from "../enums/TipoUsuario";
 import { Cliente } from "./Cliente";
 import { Venta } from "./Venta";
 
@@ -45,12 +46,12 @@ export class Asesor extends Usuario {
         return cliente;
     }
 
-    public buscarClientePorId(id: number) {
+    public buscarClientePorId(id: number){
     return this.clientes.find(c => c.getId() === id);
 }
 
-    public getTipo(): string {
-    return "ASESOR";
+    public getTipo(): TipoUsuario {
+    return TipoUsuario.ASESOR;
 }
 
     public agregarVenta(venta: Venta): void {
