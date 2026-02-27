@@ -8,11 +8,9 @@ export class Penalidad {
         private precioLote: number,
         private totalPagado: number
     ) {
-
-        if (porcentaje <= 0) {
-            throw new Error("El porcentaje de penalidad debe ser mayor a cero.");
+        if (porcentaje < 0 || porcentaje > 1) {
+            throw new Error("Porcentaje inválido.");
         }
-
         if (precioLote <= 0) {
             throw new Error("El precio del lote debe ser válido.");
         }
