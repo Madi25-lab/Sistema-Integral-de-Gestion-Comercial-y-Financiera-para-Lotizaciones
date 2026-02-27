@@ -18,46 +18,46 @@ export class Venta {
         private cliente: Cliente,
         private lote: Lote,
         private tipo: TipoVenta,
+        private tasaInteresDiaria: number,
         numeroCuotas?: number
     ) {
 
         if (!lote.estaReservado()) {
-            throw new Error("El lote debe estar reservado antes de generar una venta.");
+            throw new Error("El lote debe estar reservado.");
         }
 
         this.estado = EstadoVenta.ACTIVA;
 
         if (tipo === TipoVenta.CONTADO) {
-
             this.lote.vender();
             this.estado = EstadoVenta.COMPLETADA;
-
         } else {
 
             if (!numeroCuotas || numeroCuotas <= 0) {
-                throw new Error("Debe especificar un número válido de cuotas.");
+                throw new Error("Número de cuotas inválido.");
             }
 
             this.lote.activarFinanciamiento();
-            this.planPago = new PlanPago(lote.getPrecio(), numeroCuotas);
+
+            this.planPago = new PlanPago(
+                lote.getPrecio(),
+                numeroCuotas,
+                this.tasaInteresDiaria
+            );
         }
     }
 
-    // =========================
-    // PAGOS
-    // =========================
-
-    public pagarCuota(numero: number): void {
+    public pagarCuota(numero: number, fechaPago: Date): void {
 
         if (this.estado !== EstadoVenta.ACTIVA) {
-            throw new Error("La venta no está activa.");
+            throw new Error("Venta no activa.");
         }
 
         if (!this.planPago) {
-            throw new Error("Esta venta no es financiada.");
+            throw new Error("No es venta financiada.");
         }
 
-        this.planPago.pagarCuota(numero);
+        this.planPago.pagarCuota(numero, fechaPago);
 
         if (this.planPago.estaCompletamentePagado()) {
             this.lote.vender();
@@ -65,18 +65,10 @@ export class Venta {
         }
     }
 
-    // =========================
-    // ANULACIÓN
-    // =========================
-
     public anularVenta(porcentajePenalidad: number): number {
 
         if (this.estado !== EstadoVenta.ACTIVA) {
-            throw new Error("Solo se puede anular una venta activa.");
-        }
-
-        if (this.tipo === TipoVenta.CONTADO) {
-            throw new Error("No se puede anular una venta al contado.");
+            throw new Error("Solo se puede anular venta activa.");
         }
 
         if (!this.planPago) {
