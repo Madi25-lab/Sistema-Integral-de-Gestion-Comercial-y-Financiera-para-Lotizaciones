@@ -23,28 +23,33 @@ export class Asesor extends Usuario {
     // =========================
 
     public registrarCliente(
-        nombre: string,
-        dni: string,
-        direccion: string,
-        telefono: string
-    ): Cliente {
+    nombre: string,
+    dni: string,
+    direccion: string,
+    telefono: string
+): Cliente {
 
-        const existe = this.clientes.some(c => c.getDni() === dni);
-        if (existe) {
-            throw new Error("Ya existe un cliente con ese DNI.");
-        }
+    const existe = this.clientes.some(c =>
+        c.getDni() === dni ||
+        c.getTelefono() === telefono ||
+        c.getNombre().toLowerCase().trim() === nombre.toLowerCase().trim()
+    );
 
-        const cliente = new Cliente(
-            this.contadorClientes++,
-            nombre,
-            dni,
-            direccion,
-            telefono
-        );
-
-        this.clientes.push(cliente);
-        return cliente;
+    if (existe) {
+        throw new Error("Ya existe un cliente con el mismo DNI, teléfono o nombre.");
     }
+
+    const cliente = new Cliente(
+        this.contadorClientes++,
+        nombre,
+        dni,
+        telefono,
+        direccion
+    );
+
+    this.clientes.push(cliente);
+    return cliente;
+}
 
     public buscarClientePorId(id: number){
     return this.clientes.find(c => c.getId() === id);
