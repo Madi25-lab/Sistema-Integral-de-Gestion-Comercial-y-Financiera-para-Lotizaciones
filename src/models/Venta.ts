@@ -92,6 +92,10 @@ export class Venta {
         return devolucion;
     }
 
+    public estaAnulada(): boolean {
+    return this.estado === EstadoVenta.ANULADA;
+}
+
     // =========================
     // GETTERS
     // =========================
