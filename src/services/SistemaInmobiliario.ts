@@ -29,27 +29,46 @@ export class SistemaInmobiliario {
 
     public login(usuario: string, contraseña: string): ResultadoLogin {
 
-        const encontrado = this.usuarios.find(u =>
-            u.getUsuario() === usuario
-        );
+    const encontrado = this.usuarios.find(u =>
+        u.getUsuario() === usuario
+    );
 
-        if (!encontrado) {
-            return { exito: false, mensaje: "Usuario no encontrado" };
-        }
+    if (!encontrado) {
+        return { exito: false, mensaje: "Usuario no encontrado." };
+    }
 
-        if (!encontrado.validarCredenciales(usuario, contraseña)) {
-            return { exito: false, mensaje: "Contraseña incorrecta" };
-        }
-
-        this.usuarioLogueado = encontrado;
-
+    if (encontrado.estaBloqueado()) {
         return {
-            exito: true,
-            mensaje: "Login exitoso",
-            usuario: encontrado
+            exito: false,
+            mensaje: "Usuario bloqueado. Contacte al jefe."
         };
     }
 
+    const valido = encontrado.validarCredenciales(usuario, contraseña);
+
+    if (!valido) {
+
+        if (encontrado.estaBloqueado()) {
+            return {
+                exito: false,
+                mensaje: "Usuario bloqueado por demasiados intentos."
+            };
+        }
+
+        return {
+            exito: false,
+            mensaje: `Credenciales incorrectas. Intentos restantes: ${encontrado.getIntentosRestantes()}`
+        };
+    }
+
+    this.usuarioLogueado = encontrado;
+
+    return {
+        exito: true,
+        mensaje: "Login exitoso.",
+        usuario: encontrado
+    };
+    }
     public logout(): void {
         this.usuarioLogueado = null;
     }
@@ -62,16 +81,19 @@ export class SistemaInmobiliario {
         }
     }
 
-    private verificarJefe(): Jefe {
-        this.verificarSesion();
+    private verificarJefe(): void {
 
-        if (this.usuarioLogueado!.getTipo() !== TipoUsuario.JEFE) {
-            throw new Error("Acceso solo para jefe.");
-        }
+    this.verificarSesion();
 
-        return this.usuarioLogueado as Jefe;
+    if (!this.usuarioLogueado) {
+        throw new Error("No hay sesión activa.");
     }
 
+    if (this.usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
+        throw new Error("Acceso solo para jefe.");
+    }
+}
+    
     private verificarAsesor(): Asesor {
         this.verificarSesion();
 
@@ -81,6 +103,25 @@ export class SistemaInmobiliario {
 
         return this.usuarioLogueado as Asesor;
     }
+
+    // ================= MÉTODO DE DESBLOQUEO =================
+
+   public desbloquearUsuario(idUsuario: number): void {
+
+    this.verificarJefe();
+
+    const usuario = this.usuarios.find(u => u.getId() === idUsuario);
+
+    if (!usuario) {
+        throw new Error("Usuario no encontrado.");
+    }
+
+    if (!usuario.estaBloqueado()) {
+        throw new Error("El usuario no está bloqueado.");
+    }
+
+    usuario.desbloquear();
+}
 
     // ================= CONFIGURACIÓN =================
 
