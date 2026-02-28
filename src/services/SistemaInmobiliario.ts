@@ -1,7 +1,8 @@
 import { Usuario } from "../models/Usuario";
 import { TipoUsuario } from "../enums/TipoUsuario";
-import { Asesor } from "../models/Asesor";
 import { Jefe } from "../models/Jefe";
+import { Asesor } from "../models/Asesor";
+import { Cliente } from "../models/Cliente";
 import { Lote } from "../models/Lote";
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
@@ -11,6 +12,7 @@ export class SistemaInmobiliario {
 
     private usuarioLogueado: Usuario | null = null;
 
+    private clientes: Cliente[] = [];
     private usuarios: Usuario[] = [];
     private lotes: Lote[] = [];
     private ventas: Venta[] = [];
@@ -176,5 +178,37 @@ export class SistemaInmobiliario {
         asesor.agregarVenta(venta);
 
         return venta;
+    }
+
+    public anularVenta(idVenta: number): void {
+
+    const venta = this.ventas.find(v => v.getIdVenta() === idVenta);
+
+    if (!venta) {
+        throw new Error("Venta no encontrada.");
+    }
+
+    if (venta.estaAnulada()) {
+        throw new Error("La venta ya fue anulada.");
+    }
+    
+    const cliente = venta.getCliente();
+    const idCliente = cliente.getId();
+
+    // Anulamos la venta
+    venta.anularVenta(this.porcentajePenalidad);
+
+    // Eliminamos la venta del sistema
+    this.ventas = this.ventas.filter(v => v.getIdVenta() !== idVenta);
+
+    // Verificamos si el cliente tiene otras ventas activas
+    const tieneOtraVenta = this.ventas.some(v =>
+        v.getCliente().getId() === idCliente
+    );
+
+    // Si no tiene más ventas, se elimina
+    if (!tieneOtraVenta) {
+        this.clientes = this.clientes.filter(c => c.getId() !== idCliente);
+    }
     }
 }
