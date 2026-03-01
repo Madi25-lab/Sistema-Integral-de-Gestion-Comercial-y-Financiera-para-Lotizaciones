@@ -69,25 +69,30 @@ export class Venta {
         }
     }
 
+    public estaCompletamentePagada(): boolean {
+
+        if (this.tipo === TipoVenta.CONTADO) {
+            return true;
+        }
+
+        if (!this.planPago) {
+            return false;
+        }
+
+        return this.planPago.estaCompletamentePagado();
+    }
+
     // =========================
     // CONSULTA FINANCIAMIENTO 
     // =========================
 
     public getCuotasRestantes(): number {
-
-        if (!this.planPago) {
-            return 0;
-        }
-
+        if (!this.planPago) return 0;
         return this.planPago.obtenerCuotasRestantes();
     }
 
     public getMontoRestante(): number {
-
-        if (!this.planPago) {
-            return 0;
-        }
-
+        if (!this.planPago) return 0;
         return this.planPago.obtenerMontoRestante();
     }
 
@@ -128,7 +133,7 @@ export class Venta {
 
     public estaAnulada(): boolean {
     return this.estado === EstadoVenta.ANULADA;
-}
+    }
 
     // =========================
     // GETTERS
@@ -139,6 +144,7 @@ export class Venta {
     public getCliente(): Cliente { return this.cliente; }
     public getLote(): Lote { return this.lote; }
     public getTipo(): TipoVenta { return this.tipo; }
+    public getTotal(): number { return this.lote.getPrecio();}
     public getPlanPago(): PlanPago | null { return this.planPago; }
     public getEstado(): EstadoVenta { return this.estado; }
     public getPenalidad(): Penalidad | null { return this.penalidad; }
