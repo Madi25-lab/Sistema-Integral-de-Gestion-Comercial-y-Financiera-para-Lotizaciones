@@ -34,7 +34,7 @@ export class Lote {
     // =========================
 
     public getIdLote(): number { return this.idLote; }
-    public getNombre(): string { return this.nombre; }
+    public getNombre(): number | string { return this.nombre; }
     public getZona(): Zona { return this.zona; }
     public getTipoDistribucion(): TipoDistribucion { return this.tipoDistribucion; }
     public getPrecio(): number { return this.precioFinal; }
@@ -55,16 +55,17 @@ export class Lote {
 
     public activarFinanciamiento(): void {
         if (!this.estaReservado()) {
-            throw new Error("El lote debe estar reservado para financiarse.");
+            throw new Error("El lote debe estar reservado para pasar a financiamiento.");
         }
-        // Se mantiene como reservado hasta terminar de pagar
+        this.estado = EstadoLote.EN_FINANCIAMIENTO;
     }
 
     public vender(): void {
-        if (!this.estaReservado()) {
-            throw new Error("El lote debe estar reservado antes de venderse.");
-        }
-        this.estado = EstadoLote.VENDIDO;
+    if (!this.estaReservado()) {
+        throw new Error("El lote debe estar reservado antes de venderse.");
+    }
+
+    this.estado = EstadoLote.VENDIDO;
     }
 
     public liberar(): void {
@@ -84,6 +85,10 @@ export class Lote {
 
     public estaReservado(): boolean {
         return this.estado === EstadoLote.RESERVADO;
+    }
+
+    public estaEnFinanciamiento(): boolean {
+        return this.estado === EstadoLote.EN_FINANCIAMIENTO;
     }
 
     public estaVendido(): boolean {
