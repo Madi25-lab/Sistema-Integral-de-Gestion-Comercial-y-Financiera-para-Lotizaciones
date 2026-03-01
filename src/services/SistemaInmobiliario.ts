@@ -4,7 +4,8 @@ import { Jefe } from "../models/Jefe";
 import { Asesor } from "../models/Asesor";
 import { Cliente } from "../models/Cliente";
 import { Lote } from "../models/Lote";
-
+import { Zona } from "../enums/Zona";
+import { TipoDistribucion } from "../enums/TipoDistribucion";
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
 import { ResultadoLogin } from "../interfaces/ResultadoLogin";
@@ -16,10 +17,9 @@ export class SistemaInmobiliario {
     private clientes: Cliente[] = [];
     private usuarios: Usuario[] = [];
     private lotes: Lote[] = [];
+    private contadorLotes: number = 1;
     private ventas: Venta[] = [];
-
     private contadorVentas: number = 1;
-
     private porcentajePenalidad: number = 0.10;
     private tasaInteresDiariaGlobal: number = 0.001;
 
@@ -32,7 +32,7 @@ export class SistemaInmobiliario {
     nombre: string,
     usuario: string,
     contraseña: string
-): Asesor {
+    ): Asesor {
 
     this.verificarJefe();
 
@@ -121,6 +121,49 @@ export class SistemaInmobiliario {
     }
     public logout(): void {
         this.usuarioLogueado = null;
+    }
+
+    // ================REGISTRAR LOTE (SOLO JEFE)================
+
+    public registrarLote(
+        usuario: Usuario,
+        nombre: string,
+        tamanio: number,
+        ubicacion: string,
+        zona: Zona,
+        tipoDistribucion: TipoDistribucion,
+        precioMetro: number
+    ): Lote {
+        
+        // 🔒 Validación de permiso
+        if (usuario.getTipo() !== TipoUsuario.JEFE) {
+            throw new Error("Solo el jefe puede registrar lotes.");
+        }
+
+        // 🔒 Evitar duplicados por nombre
+        const existe = this.lotes.some(l => l.getNombre() === nombre);
+
+        if (existe) {
+            throw new Error("Ya existe un lote con ese nombre.");
+        }
+
+        const nuevoLote = new Lote(
+            this.contadorLotes++,
+            nombre,
+            tamanio,
+            ubicacion,
+            zona,
+            tipoDistribucion,
+            precioMetro
+        );
+
+        this.lotes.push(nuevoLote);
+
+        return nuevoLote;
+    }
+    
+    public getLotes(): Lote[] {
+        return this.lotes;
     }
 
     // ================= VALIDACIONES =================
