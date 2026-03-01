@@ -4,6 +4,7 @@ import { Jefe } from "../models/Jefe";
 import { Asesor } from "../models/Asesor";
 import { Cliente } from "../models/Cliente";
 import { Lote } from "../models/Lote";
+
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
 import { ResultadoLogin } from "../interfaces/ResultadoLogin";
@@ -150,35 +151,53 @@ export class SistemaInmobiliario {
     // ================= VENTAS =================
 
     public crearVenta(
-        clienteId: number,
-        loteId: number,
-        tipo: TipoVenta,
-        numeroCuotas?: number
-    ): Venta {
+    clienteId: number,
+    loteId: number,
+    tipo: TipoVenta,
+    numeroCuotas?: number
+): Venta {
 
-        const asesor = this.verificarAsesor();
+    const asesor = this.verificarAsesor();
 
-        const cliente = asesor.buscarClientePorId(clienteId);
-        if (!cliente) throw new Error("Cliente no encontrado.");
-
-        const lote = this.lotes.find(l => l.getIdLote() === loteId);
-        if (!lote) throw new Error("Lote no encontrado.");
-
-        const venta = new Venta(
-            this.contadorVentas++,
-            asesor,
-            cliente,
-            lote,
-            tipo,
-            this.tasaInteresDiariaGlobal,
-            numeroCuotas
-        );
-
-        this.ventas.push(venta);
-        asesor.agregarVenta(venta);
-
-        return venta;
+    const cliente = asesor.buscarClientePorId(clienteId);
+    if (!cliente) {
+        throw new Error("Cliente no encontrado.");
     }
+
+    const lote = this.lotes.find(l => l.getIdLote() === loteId);
+    if (!lote) {
+        throw new Error("Lote no encontrado.");
+    }
+
+    // ✅ SOLO validar disponibilidad (ya no usamos estaVendido)
+    if (!lote.estaDisponible()) {
+        throw new Error("El lote no está disponible.");
+    }
+
+    const venta = new Venta(
+        this.contadorVentas++,
+        asesor,
+        cliente,
+        lote,
+        tipo,
+        this.tasaInteresDiariaGlobal,
+        numeroCuotas
+    );
+
+    // ✅ Cambiar estado según tipo
+    if (tipo === TipoVenta.FINANCIADO) {
+        lote.reservar();
+        lote.activarFinanciamiento();
+    } else {
+        lote.reservar();
+        lote.vender();
+    }
+
+    this.ventas.push(venta);
+    asesor.agregarVenta(venta);
+
+    return venta;
+}
 
     public anularVenta(idVenta: number): void {
 
@@ -191,24 +210,27 @@ export class SistemaInmobiliario {
     if (venta.estaAnulada()) {
         throw new Error("La venta ya fue anulada.");
     }
-    
+
     const cliente = venta.getCliente();
     const idCliente = cliente.getId();
+    const lote = venta.getLote();
 
-    // Anulamos la venta
+    // ✅ Anular venta
     venta.anularVenta(this.porcentajePenalidad);
 
-    // Eliminamos la venta del sistema
+    // ✅ Liberar lote
+    lote.liberar();
+
+    // ✅ Eliminar venta del sistema
     this.ventas = this.ventas.filter(v => v.getIdVenta() !== idVenta);
 
-    // Verificamos si el cliente tiene otras ventas activas
+    // ✅ Verificar si el cliente tiene otras ventas
     const tieneOtraVenta = this.ventas.some(v =>
         v.getCliente().getId() === idCliente
     );
 
-    // Si no tiene más ventas, se elimina
     if (!tieneOtraVenta) {
         this.clientes = this.clientes.filter(c => c.getId() !== idCliente);
-    }
+        }
     }
 }
