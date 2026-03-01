@@ -11,7 +11,8 @@ export abstract class Usuario implements Identificable {
         protected id: number,
         protected nombre: string,
         protected usuario: string,
-        protected contraseña: string
+        protected contraseña: string,
+        protected tipo: TipoUsuario   // ✅ ahora el tipo se guarda aquí
     ) {}
 
     // ================= LOGIN =================
