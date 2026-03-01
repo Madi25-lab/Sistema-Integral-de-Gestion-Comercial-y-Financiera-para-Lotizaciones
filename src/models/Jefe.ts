@@ -10,16 +10,27 @@ export class Jefe extends Usuario {
         usuario: string,
         contraseña: string
     ) {
-        super(id, nombre, usuario, contraseña);
+        super(id, nombre, usuario, contraseña, TipoUsuario.JEFE);
     }
 
     public getTipo(): TipoUsuario {
-    return TipoUsuario.JEFE;
-}
+        return this.tipo;
+    }
 
-    public cambiarTasaInteres(plan: PlanPago, nuevaTasa: number): void {
-        plan.modificarTasaInteres(nuevaTasa);
+    // =========================
+    // MODIFICAR TASA DE INTERÉS
+    // =========================
+
+    public cambiarTasaInteres(plan: PlanPago | null, nuevaTasa: number): void {
+
+        if (!plan) {
+            throw new Error("El plan de pago no existe.");
         }
-}
 
-    
+        if (nuevaTasa < 0) {
+            throw new Error("La tasa de interés no puede ser negativa.");
+        }
+
+        plan.modificarTasaInteres(nuevaTasa);
+    }
+}

@@ -75,7 +75,7 @@ export class PlanPago {
     // =========================
 
     public modificarTasaInteres(nuevaTasa: number): void {
-        if (nuevaTasa < 0 ) {
+        if (nuevaTasa < 0 || nuevaTasa>1) {
             throw new Error("Tasa inválida.");
         }
         this.tasaInteresDiaria = nuevaTasa;
