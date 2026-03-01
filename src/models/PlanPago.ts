@@ -27,19 +27,18 @@ export class PlanPago {
         }
     }
 
-    public pagarCuota(numero: number, fechaPago: Date): void {
+    // =========================
+    // CONSULTAS CORREGIDAS 
+    // =========================
 
-        const cuota = this.cuotas.find(c => c.getNumero() === numero);
-        if (!cuota) throw new Error("Cuota no encontrada.");
-
-        cuota.pagar(fechaPago, this.tasaInteresDiaria);
+    public obtenerCuotasRestantes(): number {
+        return this.cuotas.filter(c => !c.estaPagada()).length;
     }
 
-    public modificarTasaInteres(nuevaTasa: number): void {
-        if (nuevaTasa < 0 || nuevaTasa > 1) {
-            throw new Error("Tasa inválida.");
-        }
-        this.tasaInteresDiaria = nuevaTasa;
+    public obtenerMontoRestante(): number {
+        return this.cuotas
+            .filter(c => !c.estaPagada())
+            .reduce((total, c) => total + c.getMontoTotal(), 0);
     }
 
     public obtenerTotalPagado(): number {
@@ -48,8 +47,38 @@ export class PlanPago {
             .reduce((total, c) => total + c.getMontoTotal(), 0);
     }
 
+    // =========================
+    // PAGAR CUOTA CORREGIDO 
+    // =========================
+
+    public pagarCuota(numero: number, fechaPago: Date): void {
+
+        const cuota = this.cuotas.find(c => c.getNumero() === numero);
+
+        if (!cuota) {
+            throw new Error("Cuota no encontrada.");
+        }
+
+        if (cuota.estaPagada()) {
+            throw new Error("Esta cuota ya fue pagada.");
+        }
+
+        cuota.pagar(fechaPago, this.tasaInteresDiaria);
+    }
+
     public estaCompletamentePagado(): boolean {
         return this.cuotas.every(c => c.estaPagada());
+    }
+
+    // =========================
+    // MODIFICAR TASA
+    // =========================
+
+    public modificarTasaInteres(nuevaTasa: number): void {
+        if (nuevaTasa < 0 ) {
+            throw new Error("Tasa inválida.");
+        }
+        this.tasaInteresDiaria = nuevaTasa;
     }
 
     public getCuotas(): Cuota[] {
