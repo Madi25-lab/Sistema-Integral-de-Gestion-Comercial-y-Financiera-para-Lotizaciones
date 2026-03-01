@@ -28,6 +28,53 @@ export class SistemaInmobiliario {
         this.usuarios.push(jefe);
     }
 
+    public agregarAsesor(
+    nombre: string,
+    usuario: string,
+    contraseña: string
+): Asesor {
+
+    this.verificarJefe();
+
+    // Validar datos básicos
+    if (!nombre || nombre.trim() === "") {
+        throw new Error("El nombre es obligatorio.");
+    }
+
+    if (!usuario || usuario.trim() === "") {
+        throw new Error("El usuario es obligatorio.");
+    }
+
+    if (!contraseña || contraseña.trim() === "") {
+        throw new Error("La contraseña es obligatoria.");
+    }
+
+    // ❗ Evitar usuario duplicado
+    const existeUsuario = this.usuarios.some(
+        u => u.getUsuario() === usuario
+    );
+
+    if (existeUsuario) {
+        throw new Error("Ya existe un usuario con ese nombre.");
+    }
+
+    // Generar nuevo ID automático
+    const nuevoId = this.usuarios.length > 0
+        ? Math.max(...this.usuarios.map(u => u.getId())) + 1
+        : 1;
+
+    const asesor = new Asesor(
+        nuevoId,
+        nombre,
+        usuario,
+        contraseña
+    );
+
+    this.usuarios.push(asesor);
+
+    return asesor;
+}
+
     // ================= LOGIN =================
 
     public login(usuario: string, contraseña: string): ResultadoLogin {
