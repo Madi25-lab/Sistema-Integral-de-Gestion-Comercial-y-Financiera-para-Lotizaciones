@@ -47,6 +47,10 @@ export class Venta {
         }
     }
 
+    // =========================
+    // PAGOS
+    // =========================
+
     public pagarCuota(numero: number, fechaPago: Date): void {
 
         if (this.estado !== EstadoVenta.ACTIVA) {
@@ -64,6 +68,36 @@ export class Venta {
             this.estado = EstadoVenta.COMPLETADA;
         }
     }
+
+    // =========================
+    // CONSULTA FINANCIAMIENTO 
+    // =========================
+
+    public getCuotasRestantes(): number {
+
+        if (!this.planPago) {
+            return 0;
+        }
+
+        return this.planPago.obtenerCuotasRestantes();
+    }
+
+    public getMontoRestante(): number {
+
+        if (!this.planPago) {
+            return 0;
+        }
+
+        return this.planPago.obtenerMontoRestante();
+    }
+
+    public esFinanciamiento(): boolean {
+        return this.planPago !== null;
+    }
+
+    // =========================
+    // ANULACIÓN
+    // =========================
 
     public anularVenta(porcentajePenalidad: number): number {
 
