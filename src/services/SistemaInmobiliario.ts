@@ -9,16 +9,17 @@ import { TipoDistribucion } from "../enums/TipoDistribucion";
 import { Venta } from "../models/Venta";
 import { TipoVenta } from "../enums/TipoVenta";
 import { ResultadoLogin } from "../interfaces/ResultadoLogin";
+import { VentaHistorica } from "../models/VentaHistorica";
 
 export class SistemaInmobiliario {
 
     private usuarioLogueado: Usuario | null = null;
-
     private clientes: Cliente[] = [];
     private usuarios: Usuario[] = [];
     private lotes: Lote[] = [];
     private asesores: Asesor[] = [];
     private ventas: Venta[] = [];
+    private historialVentas: VentaHistorica[] = [];
     private contadorLotes: number = 1;
     private contadorVentas: number = 1;
     private porcentajePenalidad: number = 0.10;
@@ -74,7 +75,7 @@ export class SistemaInmobiliario {
     this.usuarios.push(asesor);
 
     return asesor;
-}
+    }
 
     // ================= LOGIN =================
 
@@ -233,8 +234,8 @@ export class SistemaInmobiliario {
 
     if (this.usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
         throw new Error("Acceso solo para jefe.");
+        }
     }
-}
     
     private verificarAsesor(): Asesor {
         this.verificarSesion();
@@ -263,7 +264,7 @@ export class SistemaInmobiliario {
     }
 
     usuario.desbloquear();
-}
+    }
 
     // ================= CONFIGURACIÓN =================
 
@@ -285,6 +286,15 @@ export class SistemaInmobiliario {
         }
 
         this.porcentajePenalidad = nuevo;
+    }
+
+    public obtenerHistorialVentas(usuario: Usuario): VentaHistorica[] {
+
+    if (usuario.getTipo() !== TipoUsuario.JEFE) {
+        throw new Error("Solo el jefe puede ver el historial.");
+    }
+
+    return [...this.historialVentas];
     }
 
     // ================= VENTAS =================
@@ -323,17 +333,38 @@ export class SistemaInmobiliario {
         numeroCuotas
     );
 
+    // Cambiar estado de lote
+    lote.reservar();
+
     // ✅ Cambiar estado según tipo
     if (tipo === TipoVenta.FINANCIADO) {
-        lote.reservar();
         lote.activarFinanciamiento();
     } else {
-        lote.reservar();
         lote.vender();
     }
 
     this.ventas.push(venta);
     asesor.agregarVenta(venta);
+
+    // ==========================================
+    // 🔒 CREAR REGISTRO HISTÓRICO INMUTABLE
+    // ==========================================
+
+    const detalles = tipo === TipoVenta.FINANCIADO
+        ? `Venta financiada en ${numeroCuotas} cuotas`
+        : "Venta al contado";
+
+    const ventaHistorica = new VentaHistorica(
+        venta.getIdVenta(),
+        cliente.getNombre(),
+        asesor.getNombre(),
+        new Date(),
+        tipo.toString(),
+        lote.getPrecio(), // precio congelado
+        detalles
+    );
+
+    this.historialVentas.push(ventaHistorica);
 
     return venta;
     }
