@@ -13,7 +13,7 @@ export class Jefe extends Usuario {
         super(id, nombre, usuario, contraseña, TipoUsuario.JEFE);
     }
 
-    public getTipo(): TipoUsuario {
+    override getTipo(): TipoUsuario {
         return this.tipo;
     }
 

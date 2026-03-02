@@ -1,15 +1,15 @@
-import { Usuario } from "../models/Usuario";
-import { TipoUsuario } from "../enums/TipoUsuario";
-import { Jefe } from "../models/Jefe";
-import { Asesor } from "../models/Asesor";
-import { Cliente } from "../models/Cliente";
-import { Lote } from "../models/Lote";
-import { Zona } from "../enums/Zona";
-import { TipoDistribucion } from "../enums/TipoDistribucion";
-import { Venta } from "../models/Venta";
-import { TipoVenta } from "../enums/TipoVenta";
-import { ResultadoLogin } from "../interfaces/ResultadoLogin";
-import { VentaHistorica } from "../models/VentaHistorica";
+import { Usuario } from "../../Dominio/models/Usuario";
+import { TipoUsuario } from "../../Dominio/enums/TipoUsuario";
+import { Jefe } from "../../Dominio/models/Jefe";
+import { Asesor } from "../../Dominio/models/Asesor";
+import { Cliente } from "../../Dominio/models/Cliente";
+import { Lote } from "../../Dominio/models/Lote";
+import { Zona } from "../../Dominio/enums/Zona";
+import { TipoDistribucion } from "../../Dominio/enums/TipoDistribucion";
+import { Venta } from "../../Dominio/models/Venta";
+import { TipoVenta } from "../../Dominio/enums/TipoVenta";
+import { ResultadoLogin } from "../../Aplicacion/dto/ResultadoLogin";
+import { VentaHistorica } from "../../Dominio/models/VentaHistorica";
 
 export class SistemaInmobiliario {
 

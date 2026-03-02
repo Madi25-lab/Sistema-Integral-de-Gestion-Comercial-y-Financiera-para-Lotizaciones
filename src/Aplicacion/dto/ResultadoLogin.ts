@@ -1,4 +1,4 @@
-import { Usuario } from "../models/Usuario";
+import { Usuario } from "../Dominio/models/Usuario";
 
 export interface ResultadoLogin {
     exito: boolean;

@@ -1,4 +1,4 @@
-import { Identificable } from "../interfaces/Identificable";
+import { Identificable } from "../../Interfaces/Contracts/Identificable";
 import { TipoUsuario } from "../enums/TipoUsuario";
 
 export abstract class Usuario implements Identificable {

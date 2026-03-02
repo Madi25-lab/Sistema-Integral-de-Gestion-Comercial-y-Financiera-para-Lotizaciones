@@ -19,7 +19,7 @@ export class Asesor extends Usuario {
         super(id, nombre, usuario, contraseña, TipoUsuario.ASESOR);
     }
 
-    public getTipo(): TipoUsuario {
+    override getTipo(): TipoUsuario {
         return this.tipo;
     }
 
