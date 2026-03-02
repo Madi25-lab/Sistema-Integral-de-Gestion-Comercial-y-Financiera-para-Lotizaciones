@@ -19,10 +19,6 @@ export class Asesor extends Usuario {
         super(id, nombre, usuario, contraseña, TipoUsuario.ASESOR);
     }
 
-    override getTipo(): TipoUsuario {
-        return this.tipo;
-    }
-
     // =========================
     // CLIENTES
     // =========================
@@ -30,8 +26,9 @@ export class Asesor extends Usuario {
     public registrarCliente(
         nombre: string,
         dni: string,
-        direccion: string,
-        telefono: string
+        telefono: string,
+        direccion: string
+        
     ): Cliente {
 
         const existe = this.clientes.some(c =>

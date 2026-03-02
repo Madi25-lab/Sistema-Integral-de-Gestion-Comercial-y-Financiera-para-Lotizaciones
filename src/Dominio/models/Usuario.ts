@@ -12,7 +12,7 @@ export abstract class Usuario implements Identificable {
         protected nombre: string,
         protected usuario: string,
         protected contraseña: string,
-        protected tipo: TipoUsuario   // ✅ ahora el tipo se guarda aquí
+        protected tipo: TipoUsuario
     ) {}
 
     // ================= LOGIN =================
@@ -69,5 +69,7 @@ export abstract class Usuario implements Identificable {
         return this.id;
     }
 
-    public abstract getTipo(): TipoUsuario;
+    public getTipo(): TipoUsuario {
+        return this.tipo;
+    }
 }

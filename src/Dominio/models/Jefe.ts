@@ -13,10 +13,6 @@ export class Jefe extends Usuario {
         super(id, nombre, usuario, contraseña, TipoUsuario.JEFE);
     }
 
-    override getTipo(): TipoUsuario {
-        return this.tipo;
-    }
-
     // =========================
     // MODIFICAR TASA DE INTERÉS
     // =========================

@@ -1,25 +1,16 @@
-import { Usuario } from "../../Dominio/models/Usuario";
-import { TipoUsuario } from "../../Dominio/enums/TipoUsuario";
-import { Jefe } from "../../Dominio/models/Jefe";
-import { Asesor } from "../../Dominio/models/Asesor";
-import { Cliente } from "../../Dominio/models/Cliente";
-import { Lote } from "../../Dominio/models/Lote";
-import { Venta } from "../../Dominio/models/Venta";
 import { AuthService } from "./AuthService";
 import { UsuarioService } from "./UsuarioService";
 import { LoteService } from "./LoteService";
 import { VentaService } from "./VentaService";
 import { ReporteService } from "./ReporteService";
 
+import { TipoUsuario } from "../../Dominio/enums/TipoUsuario";
+
+import { UsuarioRepositoryMemoria } from "../../Infraestructura/Repositories/UsuarioRepositoryMemoria";
+import { LoteRepositoryMemoria } from "../../Infraestructura/Repositories/LoteRepositoryMemoria";
+import { VentaRepositoryMemoria } from "../../Infraestructura/Repositories/VentaRepositoryMemoria";
+
 export class SistemaInmobiliario {
-
-    private usuarios: Usuario[] = [];
-    private lotes: Lote[] = [];
-    private ventas: Venta[] = [];
-    private clientes:Cliente[]=[];
-
-    private porcentajePenalidad: number = 0.10;
-    private tasaInteresDiariaGlobal: number = 0.001;
 
     public auth: AuthService;
     public usuarioService: UsuarioService;
@@ -27,30 +18,41 @@ export class SistemaInmobiliario {
     public ventaService: VentaService;
     public reporteService: ReporteService;
 
-    constructor() {
+    private porcentajePenalidad: number = 0.10;
+    private tasaInteresDiariaGlobal: number = 0.001;
 
-        // Crear jefe inicial
-        const jefe = new Jefe(1, "Administrador", "admin", "1234");
-        this.usuarios.push(jefe);
+    // ahora guardamos los repositorios
+    private usuarioRepo: UsuarioRepositoryMemoria;
+    private loteRepo: LoteRepositoryMemoria;
+    private ventaRepo: VentaRepositoryMemoria;
 
-        // Inicializar services
-        this.auth = new AuthService(this.usuarios);
+    constructor(
+        usuarioRepo: UsuarioRepositoryMemoria,
+        loteRepo: LoteRepositoryMemoria,
+        ventaRepo: VentaRepositoryMemoria
+    ) {
 
-        this.usuarioService = new UsuarioService(this.usuarios);
+        this.usuarioRepo = usuarioRepo;
+        this.loteRepo = loteRepo;
+        this.ventaRepo = ventaRepo;
 
-        this.loteService = new LoteService(this.lotes);
+        this.auth = new AuthService(usuarioRepo.obtenerTodos());
+
+        this.usuarioService = new UsuarioService(usuarioRepo.obtenerTodos());
+
+        this.loteService = new LoteService(loteRepo.obtenerTodos());
 
         this.ventaService = new VentaService(
-            this.ventas,
-            this.lotes,
-            this.clientes,
+            ventaRepo.obtenerTodos(),
+            loteRepo.obtenerTodos(),
+            [],
             this.tasaInteresDiariaGlobal,
             this.porcentajePenalidad
         );
 
         this.reporteService = new ReporteService(
-            this.ventas,
-            this.usuarios.filter(u => u instanceof Asesor) as Asesor[]
+            ventaRepo.obtenerTodos(),
+            usuarioRepo.obtenerTodos().filter(u => u.getTipo() === TipoUsuario.ASESOR)
         );
     }
 
@@ -64,7 +66,9 @@ export class SistemaInmobiliario {
             throw new Error("Solo el jefe puede desbloquear usuarios.");
         }
 
-        const usuario = this.usuarios.find(u => u.getId() === idUsuario);
+        const usuario = this.usuarioRepo
+            .obtenerTodos()
+            .find(u => u.getId() === idUsuario);
 
         if (!usuario) {
             throw new Error("Usuario no encontrado.");
