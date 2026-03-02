@@ -4,272 +4,88 @@ import { Jefe } from "../../Dominio/models/Jefe";
 import { Asesor } from "../../Dominio/models/Asesor";
 import { Cliente } from "../../Dominio/models/Cliente";
 import { Lote } from "../../Dominio/models/Lote";
-import { Zona } from "../../Dominio/enums/Zona";
-import { TipoDistribucion } from "../../Dominio/enums/TipoDistribucion";
 import { Venta } from "../../Dominio/models/Venta";
-import { TipoVenta } from "../../Dominio/enums/TipoVenta";
-import { ResultadoLogin } from "../../Aplicacion/dto/ResultadoLogin";
-import { VentaHistorica } from "../../Dominio/models/VentaHistorica";
+import { AuthService } from "./AuthService";
+import { UsuarioService } from "./UsuarioService";
+import { LoteService } from "./LoteService";
+import { VentaService } from "./VentaService";
+import { ReporteService } from "./ReporteService";
 
 export class SistemaInmobiliario {
 
-    private usuarioLogueado: Usuario | null = null;
-    private clientes: Cliente[] = [];
     private usuarios: Usuario[] = [];
     private lotes: Lote[] = [];
-    private asesores: Asesor[] = [];
     private ventas: Venta[] = [];
-    private historialVentas: VentaHistorica[] = [];
-    private contadorLotes: number = 1;
-    private contadorVentas: number = 1;
+    private clientes:Cliente[]=[];
+
     private porcentajePenalidad: number = 0.10;
     private tasaInteresDiariaGlobal: number = 0.001;
 
+    public auth: AuthService;
+    public usuarioService: UsuarioService;
+    public loteService: LoteService;
+    public ventaService: VentaService;
+    public reporteService: ReporteService;
+
     constructor() {
+
+        // Crear jefe inicial
         const jefe = new Jefe(1, "Administrador", "admin", "1234");
         this.usuarios.push(jefe);
-    }
 
-    public agregarAsesor(
-    nombre: string,
-    usuario: string,
-    contraseña: string
-    ): Asesor {
+        // Inicializar services
+        this.auth = new AuthService(this.usuarios);
 
-    this.verificarJefe();
+        this.usuarioService = new UsuarioService(this.usuarios);
 
-    // Validar datos básicos
-    if (!nombre || nombre.trim() === "") {
-        throw new Error("El nombre es obligatorio.");
-    }
+        this.loteService = new LoteService(this.lotes);
 
-    if (!usuario || usuario.trim() === "") {
-        throw new Error("El usuario es obligatorio.");
-    }
-
-    if (!contraseña || contraseña.trim() === "") {
-        throw new Error("La contraseña es obligatoria.");
-    }
-
-    // ❗ Evitar usuario duplicado
-    const existeUsuario = this.usuarios.some(
-        u => u.getUsuario() === usuario
-    );
-
-    if (existeUsuario) {
-        throw new Error("Ya existe un usuario con ese nombre.");
-    }
-
-    // Generar nuevo ID automático
-    const nuevoId = this.usuarios.length > 0
-        ? Math.max(...this.usuarios.map(u => u.getId())) + 1
-        : 1;
-
-    const asesor = new Asesor(
-        nuevoId,
-        nombre,
-        usuario,
-        contraseña
-    );
-
-    this.usuarios.push(asesor);
-
-    return asesor;
-    }
-
-    // ================= LOGIN =================
-
-    public login(usuario: string, contraseña: string): ResultadoLogin {
-
-    const encontrado = this.usuarios.find(u =>
-        u.getUsuario() === usuario
-    );
-
-    if (!encontrado) {
-        return { exito: false, mensaje: "Usuario no encontrado." };
-    }
-
-    if (encontrado.estaBloqueado()) {
-        return {
-            exito: false,
-            mensaje: "Usuario bloqueado. Contacte al jefe."
-        };
-    }
-
-    const valido = encontrado.validarCredenciales(usuario, contraseña);
-
-    if (!valido) {
-
-        if (encontrado.estaBloqueado()) {
-            return {
-                exito: false,
-                mensaje: "Usuario bloqueado por demasiados intentos."
-            };
-        }
-
-        return {
-            exito: false,
-            mensaje: `Credenciales incorrectas. Intentos restantes: ${encontrado.getIntentosRestantes()}`
-        };
-    }
-
-    this.usuarioLogueado = encontrado;
-
-    return {
-        exito: true,
-        mensaje: "Login exitoso.",
-        usuario: encontrado
-    };
-    }
-    public logout(): void {
-        this.usuarioLogueado = null;
-    }
-
-    // ================REGISTRAR LOTE (SOLO JEFE)================
-
-    public registrarLote(
-        usuario: Usuario,
-        nombre: string,
-        tamanio: number,
-        ubicacion: string,
-        zona: Zona,
-        tipoDistribucion: TipoDistribucion,
-        precioMetro: number
-    ): Lote {
-        
-        // 🔒 Validación de permiso
-        if (usuario.getTipo() !== TipoUsuario.JEFE) {
-            throw new Error("Solo el jefe puede registrar lotes.");
-        }
-
-        // 🔒 Evitar duplicados por nombre
-        const existe = this.lotes.some(l => l.getNombre() === nombre);
-
-        if (existe) {
-            throw new Error("Ya existe un lote con ese nombre.");
-        }
-
-        const nuevoLote = new Lote(
-            this.contadorLotes++,
-            nombre,
-            tamanio,
-            ubicacion,
-            zona,
-            tipoDistribucion,
-            precioMetro
+        this.ventaService = new VentaService(
+            this.ventas,
+            this.lotes,
+            this.clientes,
+            this.tasaInteresDiariaGlobal,
+            this.porcentajePenalidad
         );
 
-        this.lotes.push(nuevoLote);
-
-        return nuevoLote;
-    }
-    
-    public getLotes(): Lote[] {
-        return this.lotes;
-    }
-
-    // =================   REPORTES ==================
-
-    public obtenerTotalVentas(usuario: Usuario): number {
-
-    if (usuario.getTipo() !== TipoUsuario.JEFE) {
-        throw new Error("Solo el jefe puede ver reportes.");
-    }
-
-    return this.ventas.length;
-    }
-
-    public obtenerIngresosTotales(usuario: Usuario): number {
-
-    if (usuario.getTipo() !== TipoUsuario.JEFE) {
-        throw new Error("Solo el jefe puede ver reportes.");
-    }
-
-    return this.ventas
-        .filter(v => v.estaCompletamentePagada())
-        .reduce((total, v) => total + v.getTotal(), 0);
-    }
-
-    public obtenerAsesorConMasVentas(usuario: Usuario): Asesor | null {
-
-    if (usuario.getTipo() !== TipoUsuario.JEFE) {
-        throw new Error("Solo el jefe puede ver reportes.");
-    }
-
-    if (this.asesores.length === 0) return null;
-
-    let asesorTop: Asesor | null = null;
-    let maxVentas = 0;
-
-    for (const asesor of this.asesores) {
-
-        const cantidad = this.ventas.filter(v =>
-            v.getAsesor().getId() === asesor.getId()
-        ).length;
-
-        if (cantidad > maxVentas) {
-            maxVentas = cantidad;
-            asesorTop = asesor;
-        }
-    }
-
-    return asesorTop;
-    }
-
-    // ================= VALIDACIONES =================
-
-    private verificarSesion(): void {
-        if (!this.usuarioLogueado) {
-            throw new Error("Debe iniciar sesión.");
-        }
-    }
-
-    private verificarJefe(): void {
-
-    this.verificarSesion();
-
-    if (!this.usuarioLogueado) {
-        throw new Error("No hay sesión activa.");
-    }
-
-    if (this.usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
-        throw new Error("Acceso solo para jefe.");
-        }
-    }
-    
-    private verificarAsesor(): Asesor {
-        this.verificarSesion();
-
-        if (this.usuarioLogueado!.getTipo() !== TipoUsuario.ASESOR) {
-            throw new Error("Acceso solo para asesor.");
-        }
-
-        return this.usuarioLogueado as Asesor;
+        this.reporteService = new ReporteService(
+            this.ventas,
+            this.usuarios.filter(u => u instanceof Asesor) as Asesor[]
+        );
     }
 
     // ================= MÉTODO DE DESBLOQUEO =================
 
-   public desbloquearUsuario(idUsuario: number): void {
+    public desbloquearUsuario(idUsuario: number): void {
 
-    this.verificarJefe();
+        const usuarioLogueado = this.auth.getUsuarioLogueado();
 
-    const usuario = this.usuarios.find(u => u.getId() === idUsuario);
+        if (!usuarioLogueado || usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
+            throw new Error("Solo el jefe puede desbloquear usuarios.");
+        }
 
-    if (!usuario) {
-        throw new Error("Usuario no encontrado.");
-    }
+        const usuario = this.usuarios.find(u => u.getId() === idUsuario);
 
-    if (!usuario.estaBloqueado()) {
-        throw new Error("El usuario no está bloqueado.");
-    }
+        if (!usuario) {
+            throw new Error("Usuario no encontrado.");
+        }
 
-    usuario.desbloquear();
+        if (!usuario.estaBloqueado()) {
+            throw new Error("El usuario no está bloqueado.");
+        }
+
+        usuario.desbloquear();
     }
 
     // ================= CONFIGURACIÓN =================
 
     public actualizarTasaInteresGlobal(nuevaTasa: number): void {
-        this.verificarJefe();
+
+        const usuarioLogueado = this.auth.getUsuarioLogueado();
+
+        if (!usuarioLogueado || usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
+            throw new Error("Solo el jefe puede modificar la tasa.");
+        }
 
         if (nuevaTasa < 0 || nuevaTasa > 1) {
             throw new Error("Tasa inválida.");
@@ -279,132 +95,17 @@ export class SistemaInmobiliario {
     }
 
     public actualizarPorcentajePenalidad(nuevo: number): void {
-        this.verificarJefe();
+
+        const usuarioLogueado = this.auth.getUsuarioLogueado();
+
+        if (!usuarioLogueado || usuarioLogueado.getTipo() !== TipoUsuario.JEFE) {
+            throw new Error("Solo el jefe puede modificar la penalidad.");
+        }
 
         if (nuevo < 0 || nuevo > 1) {
             throw new Error("Porcentaje inválido.");
         }
 
         this.porcentajePenalidad = nuevo;
-    }
-
-    public obtenerHistorialVentas(usuario: Usuario): VentaHistorica[] {
-
-    if (usuario.getTipo() !== TipoUsuario.JEFE) {
-        throw new Error("Solo el jefe puede ver el historial.");
-    }
-
-    return [...this.historialVentas];
-    }
-
-    // ================= VENTAS =================
-
-    public crearVenta(
-    clienteId: number,
-    loteId: number,
-    tipo: TipoVenta,
-    numeroCuotas?: number
-    ): Venta {
-
-    const asesor = this.verificarAsesor();
-
-    const cliente = asesor.buscarClientePorId(clienteId);
-    if (!cliente) {
-        throw new Error("Cliente no encontrado.");
-    }
-
-    const lote = this.lotes.find(l => l.getIdLote() === loteId);
-    if (!lote) {
-        throw new Error("Lote no encontrado.");
-    }
-
-    // ✅ SOLO validar disponibilidad (ya no usamos estaVendido)
-    if (!lote.estaDisponible()) {
-        throw new Error("El lote no está disponible.");
-    }
-
-    const venta = new Venta(
-        this.contadorVentas++,
-        asesor,
-        cliente,
-        lote,
-        tipo,
-        this.tasaInteresDiariaGlobal,
-        numeroCuotas
-    );
-
-    // Cambiar estado de lote
-    lote.reservar();
-
-    // ✅ Cambiar estado según tipo
-    if (tipo === TipoVenta.FINANCIADO) {
-        lote.activarFinanciamiento();
-    } else {
-        lote.vender();
-    }
-
-    this.ventas.push(venta);
-    asesor.agregarVenta(venta);
-
-    // ==========================================
-    // 🔒 CREAR REGISTRO HISTÓRICO INMUTABLE
-    // ==========================================
-
-    const detalles = tipo === TipoVenta.FINANCIADO
-        ? `Venta financiada en ${numeroCuotas} cuotas`
-        : "Venta al contado";
-
-    const ventaHistorica = new VentaHistorica(
-        venta.getIdVenta(),
-        cliente.getNombre(),
-        asesor.getNombre(),
-        new Date(),
-        tipo.toString(),
-        lote.getPrecio(), // precio congelado
-        detalles
-    );
-
-    this.historialVentas.push(ventaHistorica);
-
-    return venta;
-    }
-
-    public registrarVenta(venta: Venta): void {
-    this.ventas.push(venta);
-    }
-
-    public anularVenta(idVenta: number): void {
-
-    const venta = this.ventas.find(v => v.getIdVenta() === idVenta);
-
-    if (!venta) {
-        throw new Error("Venta no encontrada.");
-    }
-
-    if (venta.estaAnulada()) {
-        throw new Error("La venta ya fue anulada.");
-    }
-
-    const cliente = venta.getCliente();
-    const idCliente = cliente.getId();
-    const lote = venta.getLote();
-
-    // ✅ Anular venta
-    venta.anularVenta(this.porcentajePenalidad);
-
-    // ✅ Liberar lote
-    lote.liberar();
-
-    // ✅ Eliminar venta del sistema
-    this.ventas = this.ventas.filter(v => v.getIdVenta() !== idVenta);
-
-    // ✅ Verificar si el cliente tiene otras ventas
-    const tieneOtraVenta = this.ventas.some(v =>
-        v.getCliente().getId() === idCliente
-    );
-
-    if (!tieneOtraVenta) {
-        this.clientes = this.clientes.filter(c => c.getId() !== idCliente);
-        }
     }
 }
