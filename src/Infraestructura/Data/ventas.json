@@ -1,0 +1,53 @@
+[
+  {
+    "id": 1,
+    "cliente": {
+      "id": 1,
+      "nombre": "Juan Perez",
+      "dni": "12345678",
+      "telefono": "987654321",
+      "direccion": "Av Siempre Viva 123"
+    },
+    "asesorId": 2,
+    "loteId": 3,
+    "tipo": "FINANCIADO",
+    "tasaInteresDiaria": 0.01,
+    "numeroCuotas": 12,
+    "fecha": "2026-03-01T00:00:00.000Z",
+    "estado": "ACTIVA"
+  },
+  {
+    "id": 2,
+    "cliente": {
+      "id": 2,
+      "nombre": "Carlos Mendoza",
+      "dni": "87654321",
+      "telefono": "912345678",
+      "direccion": "Calle Lima 456"
+    },
+    "asesorId": 3,
+    "loteId": 4,
+    "tipo": "CONTADO",
+    "tasaInteresDiaria": 0,
+    "numeroCuotas": 0,
+    "fecha": "2026-02-15T00:00:00.000Z",
+    "estado": "COMPLETADA"
+  },
+  {
+    "id": 3,
+    "cliente": {
+      "id": 3,
+      "nombre": "Lucia Fernandez",
+      "dni": "11223344",
+      "telefono": "998877665",
+      "direccion": "Av Los Jardines 789"
+    },
+    "asesorId": 4,
+    "loteId": 2,
+    "tipo": "FINANCIADO",
+    "tasaInteresDiaria": 0.015,
+    "numeroCuotas": 10,
+    "fecha": "2026-01-20T00:00:00.000Z",
+    "estado": "ANULADA"
+  }
+]
