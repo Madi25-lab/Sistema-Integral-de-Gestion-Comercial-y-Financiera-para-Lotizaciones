@@ -39,49 +39,7 @@ export class VentaRepositoryArchivo {
     // ================= MAPEAR =================
 
     private mapearVenta(obj: any): Venta {
-
-    const usuarios = this.usuarioRepo.obtenerTodos();
-    const lotes = this.loteRepo.obtenerTodos();
-
-    const usuarioAsesor = usuarios.find(u => u.getId() === obj.asesorId);
-
-    if (!usuarioAsesor || usuarioAsesor.getTipo() !== TipoUsuario.ASESOR) {
-        throw new Error("Asesor inválido.");
-    }
-
-    const asesor = usuarioAsesor as Asesor;
-
-    const cliente = new Cliente(
-        obj.cliente.id,
-        obj.cliente.nombre,
-        obj.cliente.dni,
-        obj.cliente.telefono,
-        obj.cliente.direccion
-    );
-
-    const lote = lotes.find(l => l.getIdLote() === obj.loteId);
-    if (!lote) {
-        throw new Error("Lote no encontrado.");
-    }
-
-    // Asegurar que el lote esté reservado antes de crear la venta
-    if (lote.estaDisponible()) {
-        lote.reservar();
-    }
-
-    const venta = new Venta(
-        obj.id,
-        asesor,
-        cliente,
-        lote,
-        obj.tipo as TipoVenta,
-        obj.tasaInteresDiaria,
-        obj.numeroCuotas,
-        new Date(obj.fecha),
-        obj.estado
-    );
-
-    return venta;
+    return Venta.reconstruirDesdeJSON(obj);
     }
 
     // ================= MÉTODOS PÚBLICOS =================

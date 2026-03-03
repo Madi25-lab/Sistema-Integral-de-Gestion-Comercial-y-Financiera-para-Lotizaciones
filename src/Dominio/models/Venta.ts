@@ -51,7 +51,25 @@ export class Venta {
         );
     }
 }
+    // =========================
+    // RECONSTRUCCIÓN (para repositorio)
+    // =========================
 
+    // =========================
+    // RECONSTRUCCIÓN SIMPLE
+    // =========================
+
+    public static reconstruirDesdeJSON(data: any): Venta {
+
+        const venta = Object.create(Venta.prototype);
+
+        Object.assign(venta, data);
+
+        venta.fecha = new Date(data.fecha);
+
+        return venta;
+    }
+        
     // =========================
     // PAGOS
     // =========================

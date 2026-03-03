@@ -40,11 +40,23 @@ export class LoteRepositoryArchivo {
         obj.precio
     );
 
-    if (obj.estado === "RESERVADO") lote.reservar();
-    if (obj.estado === "EN_FINANCIAMIENTO") lote.activarFinanciamiento();
-    if (obj.estado === "VENDIDO") lote.marcarVendido();
+    // Reconstrucción correcta respetando flujo del dominio
+    if (obj.estado === "RESERVADO") {
+        lote.reservar();
+    }
 
-    return lote;
+    if (obj.estado === "EN_FINANCIAMIENTO") {
+        lote.reservar();
+        lote.activarFinanciamiento();
+    }
+
+    if (obj.estado === "VENDIDO") {
+        lote.reservar();
+        lote.activarFinanciamiento();
+        lote.marcarVendido();
+    }
+
+        return lote;
     }
 
     // =========================
