@@ -8,7 +8,11 @@ export class LoteService{
 
     private contadorLotes: number = 1;
 
-    constructor(private lotes:Lote[]){}
+    constructor(private lotes:Lote[]){
+    this.contadorLotes = lotes.length > 0
+        ? Math.max(...lotes.map(l => l.getIdLote())) + 1
+        : 1;
+    }
     
     public registrarLote(
         usuario: Usuario,
