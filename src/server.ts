@@ -656,7 +656,7 @@ app.get("*", (_req, res) => res.sendFile(path.join(publicPath, "index.html")));
 //  ARRANCAR
 // ══════════════════════════════════════════════════════
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`\n🏡  InmoSistema corriendo en http://localhost:${PORT}`);
   console.log(`📁  Datos en: ${DATA_DIR}\n`);
