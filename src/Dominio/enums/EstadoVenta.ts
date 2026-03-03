@@ -1,5 +1,5 @@
 export enum EstadoVenta {
-    ACTIVA,
-    COMPLETADA,
-    ANULADA
+    COMPLETADA="COMPLETADA",
+    ANULADA="ANULADA",
+    ACTIVA = "ACTIVA" 
 }
