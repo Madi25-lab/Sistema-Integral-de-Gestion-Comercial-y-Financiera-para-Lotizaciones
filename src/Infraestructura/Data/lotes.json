@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "nombre": "Lote A1",
+    "tamanio": 120,
+    "ubicacion": "Frente al parque central",
+    "zona": "A",
+    "tipoDistribucion": "FRENTE_PARQUE",
+    "precio": 15000,
+    "estado": "DISPONIBLE"
+  },
+  {
+    "id": 2,
+    "nombre": "Lote B1",
+    "tamanio": 100,
+    "ubicacion": "Av. Principal 123",
+    "zona": "B",
+    "tipoDistribucion": "AVENIDA",
+    "precio": 12000,
+    "estado": "RESERVADO"
+  },
+  {
+    "id": 3,
+    "nombre": "Lote C1",
+    "tamanio": 90,
+    "ubicacion": "Pasaje Los Álamos",
+    "zona": "C",
+    "tipoDistribucion": "PASAJE",
+    "precio": 10000,
+    "estado": "EN_FINANCIAMIENTO"
+  },
+  {
+    "id": 4,
+    "nombre": "Lote A2",
+    "tamanio": 150,
+    "ubicacion": "Esquina Av. Sol y Luna",
+    "zona": "A",
+    "tipoDistribucion": "ESQUINA",
+    "precio": 20000,
+    "estado": "VENDIDO"
+  },
+  {
+    "id": 5,
+    "nombre": "Lote B2",
+    "tamanio": 110,
+    "ubicacion": "Av. Comercio 456",
+    "zona": "B",
+    "tipoDistribucion": "AVENIDA",
+    "precio": 13000,
+    "estado": "DISPONIBLE"
+  }
+]
