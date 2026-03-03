@@ -78,7 +78,7 @@ app.post("/api/ventas", (req, res) => {
 });
 
 // ===== FRONTEND =====
-app.use(express.static("public"));
+app.use(express.static("public" ));
 
 const PORT = process.env.PORT || 3000;
 
