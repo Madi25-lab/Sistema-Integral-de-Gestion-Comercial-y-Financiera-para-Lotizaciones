@@ -14,43 +14,43 @@ export class Venta {
     private fecha: Date;
 
     constructor(
-        private idVenta: number,
-        private asesor: Asesor,
-        private cliente: Cliente,
-        private lote: Lote,
-        private tipo: TipoVenta,
-        private tasaInteresDiaria: number,
-        numeroCuotas?: number,
-        fecha?: Date
-    ) {
+    private idVenta: number,
+    private asesor: Asesor,
+    private cliente: Cliente,
+    private lote: Lote,
+    private tipo: TipoVenta,
+    private tasaInteresDiaria: number,
+    numeroCuotas?: number,
+    fecha?: Date,
+    estado?: EstadoVenta
+) {
 
-        if (!lote.estaReservado()) {
-            throw new Error("El lote debe estar reservado.");
-        }
-
-        this.fecha = fecha ?? new Date(); // 👈 si no envían fecha, usa la actual
-        this.estado = EstadoVenta.ACTIVA;
-
-        if (tipo === TipoVenta.CONTADO) {
-
-            this.lote.vender();
-            this.estado = EstadoVenta.COMPLETADA;
-
-        } else {
-
-            if (!numeroCuotas || numeroCuotas <= 0) {
-                throw new Error("Número de cuotas inválido.");
-            }
-
-            this.lote.activarFinanciamiento();
-
-            this.planPago = new PlanPago(
-                lote.getPrecio(),
-                numeroCuotas,
-                this.tasaInteresDiaria
-            );
-        }
+    if (!lote.estaReservado() && !lote.estaEnFinanciamiento() && !lote.estaVendido()) {
+        throw new Error("Estado inválido del lote para crear venta.");
     }
+
+    this.fecha = fecha ?? new Date();
+    this.estado = estado ?? EstadoVenta.ACTIVA;
+
+    if (tipo === TipoVenta.CONTADO) {
+
+        if (this.estado === EstadoVenta.COMPLETADA) {
+            this.lote.marcarVendido();
+        }
+
+    } else {
+
+        if (!numeroCuotas || numeroCuotas <= 0) {
+            throw new Error("Número de cuotas inválido.");
+        }
+
+        this.planPago = new PlanPago(
+            lote.getPrecio(),
+            numeroCuotas,
+            this.tasaInteresDiaria
+        );
+    }
+}
 
     // =========================
     // PAGOS

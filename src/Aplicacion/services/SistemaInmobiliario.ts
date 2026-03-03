@@ -1,3 +1,5 @@
+// ==== C:\Users\HP\Desktop\Proyecto_Final\src\Aplicacion\services\SistemaInmobiliario.ts ====
+
 import { AuthService } from "./AuthService";
 import { UsuarioService } from "./UsuarioService";
 import { LoteService } from "./LoteService";
@@ -5,10 +7,14 @@ import { VentaService } from "./VentaService";
 import { ReporteService } from "./ReporteService";
 
 import { TipoUsuario } from "../../Dominio/enums/TipoUsuario";
+import { TipoVenta } from "../../Dominio/enums/TipoVenta";
 
-import { UsuarioRepositoryMemoria } from "../../Infraestructura/Repositories/UsuarioRepositoryMemoria";
-import { LoteRepositoryMemoria } from "../../Infraestructura/Repositories/LoteRepositoryMemoria";
-import { VentaRepositoryMemoria } from "../../Infraestructura/Repositories/VentaRepositoryMemoria";
+import { UsuarioRepositoryArchivo } from "../../Infraestructura/Repositories/UsuarioRepositoryArchivo"; 
+import { LoteRepositoryArchivo } from "../../Infraestructura/Repositories/LoteRepositoryArchivo";
+import { VentaRepositoryArchivo } from "../../Infraestructura/Repositories/VentaRepositoryArchivo";
+
+import { Asesor } from "../../Dominio/models/Asesor";
+import { Venta } from "../../Dominio/models/Venta";
 
 export class SistemaInmobiliario {
 
@@ -21,42 +27,92 @@ export class SistemaInmobiliario {
     private porcentajePenalidad: number = 0.10;
     private tasaInteresDiariaGlobal: number = 0.001;
 
-    // ahora guardamos los repositorios
-    private usuarioRepo: UsuarioRepositoryMemoria;
-    private loteRepo: LoteRepositoryMemoria;
-    private ventaRepo: VentaRepositoryMemoria;
+    private usuarioRepo: UsuarioRepositoryArchivo;
+    private loteRepo: LoteRepositoryArchivo;
+    private ventaRepo: VentaRepositoryArchivo;
 
     constructor(
-        usuarioRepo: UsuarioRepositoryMemoria,
-        loteRepo: LoteRepositoryMemoria,
-        ventaRepo: VentaRepositoryMemoria
+        usuarioRepo: UsuarioRepositoryArchivo,
+        loteRepo: LoteRepositoryArchivo,
+        ventaRepo: VentaRepositoryArchivo
     ) {
 
         this.usuarioRepo = usuarioRepo;
         this.loteRepo = loteRepo;
         this.ventaRepo = ventaRepo;
 
-        this.auth = new AuthService(usuarioRepo.obtenerTodos());
+        const usuarios = this.usuarioRepo.obtenerTodos();
+        const lotes = this.loteRepo.obtenerTodos();
+        const ventas = this.ventaRepo.obtenerTodos();
 
-        this.usuarioService = new UsuarioService(usuarioRepo.obtenerTodos());
+        this.auth = new AuthService(usuarios);
+        this.usuarioService = new UsuarioService(usuarios, this.usuarioRepo);
+        this.loteService = new LoteService(lotes);
 
-        this.loteService = new LoteService(loteRepo.obtenerTodos());
+        const clientes: any[] = [];
 
         this.ventaService = new VentaService(
-            ventaRepo.obtenerTodos(),
-            loteRepo.obtenerTodos(),
-            [],
+            ventas,
+            lotes,
+            clientes,
             this.tasaInteresDiariaGlobal,
             this.porcentajePenalidad
         );
 
         this.reporteService = new ReporteService(
-            ventaRepo.obtenerTodos(),
-            usuarioRepo.obtenerTodos().filter(u => u.getTipo() === TipoUsuario.ASESOR)
+            ventas,
+            usuarios.filter(u => u.getTipo() === TipoUsuario.ASESOR)
         );
     }
 
-    // ================= MÉTODO DE DESBLOQUEO =================
+    // ================= CREAR VENTA CORREGIDO =================
+
+    public crearVenta(
+    usuario: Asesor,
+    clienteId: number,
+    loteId: number,
+    tipo: TipoVenta,
+    numeroCuotas?: number
+    ): Venta {
+
+    const usuarioLogueado = this.auth.getUsuarioLogueado();
+
+    if (!usuarioLogueado || usuarioLogueado.getTipo() !== TipoUsuario.ASESOR) {
+        throw new Error("Solo un asesor puede crear ventas.");
+    }
+
+    const lote = this.loteRepo.buscarPorId(loteId);
+
+    if (!lote) {
+        throw new Error("Lote no encontrado.");
+    }
+
+    if (!lote.estaDisponible()) {
+        throw new Error("El lote no está disponible.");
+    }
+
+    const venta = this.ventaService.crearVenta(
+        usuario,
+        clienteId,
+        loteId,
+        tipo,
+        numeroCuotas
+    );
+
+    this.ventaRepo.guardar(venta);
+
+    return venta;
+    }
+
+    // ================= ANULAR =================
+
+    public anularVenta(idVenta: number): void {
+
+    this.ventaService.anularVenta(idVenta);
+    this.ventaRepo.eliminar(idVenta);
+    }
+
+    // ================= DESBLOQUEAR =================
 
     public desbloquearUsuario(idUsuario: number): void {
 
@@ -92,7 +148,7 @@ export class SistemaInmobiliario {
         }
 
         if (nuevaTasa < 0 || nuevaTasa > 1) {
-            throw new Error("Tasa inválida.");
+            throw new Error("La tasa debe estar entre 0 y 1.");
         }
 
         this.tasaInteresDiariaGlobal = nuevaTasa;

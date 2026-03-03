@@ -6,6 +6,7 @@ import { TipoVenta } from "../../Dominio/enums/TipoVenta";
 import { Lote } from "../../Dominio/models/Lote";
 import { Cliente } from "../../Dominio/models/Cliente";
 import { Asesor } from "../../Dominio/models/Asesor";
+import { EstadoVenta } from "../../Dominio/enums/EstadoVenta";
 
 export class VentaService{
 
@@ -13,12 +14,16 @@ export class VentaService{
     private historialVentas:VentaHistorica[]=[]
 
     constructor(
-        private ventas: Venta[],
-        private lotes:Lote[],
-        private clientes:Cliente[],
-        private tasaInteresDiariaGlobal:number,
-        private porcentajePenalidad:number
-    ){}
+    private ventas: Venta[],
+    private lotes:Lote[],
+    private clientes:Cliente[],
+    private tasaInteresDiariaGlobal:number,
+    private porcentajePenalidad:number
+){
+    this.contadorVentas = ventas.length > 0
+        ? Math.max(...ventas.map(v => v.getIdVenta())) + 1
+        : 1;
+}
 
     private verificarAsesor(usuario: Usuario): Asesor {
 
@@ -29,54 +34,46 @@ export class VentaService{
         return usuario as Asesor;
     }
 
-     public crearVenta(
-        usuario:Usuario,
+    public crearVenta(
+        usuario: Usuario,
         clienteId: number,
         loteId: number,
         tipo: TipoVenta,
         numeroCuotas?: number
     ): Venta {
-    
-        const asesor = this.verificarAsesor(usuario);
-    
-        const cliente = asesor.buscarClientePorId(clienteId);
-        if (!cliente) {
-            throw new Error("Cliente no encontrado.");
-        }
-    
-        const lote = this.lotes.find(l => l.getIdLote() === loteId);
-        if (!lote) {
-            throw new Error("Lote no encontrado.");
-        }
-    
-        // ✅ SOLO validar disponibilidad (ya no usamos estaVendido)
-        if (!lote.estaDisponible()) {
-            throw new Error("El lote no está disponible.");
-        }
-    
-        const venta = new Venta(
-            this.contadorVentas++,
-            asesor,
-            cliente,
-            lote,
-            tipo,
-            this.tasaInteresDiariaGlobal,
-            numeroCuotas
+
+    const asesor = this.verificarAsesor(usuario);
+
+    const cliente = asesor.buscarClientePorId(clienteId);
+    if (!cliente) {
+        throw new Error("Cliente no encontrado.");
+    }
+
+    const lote = this.lotes.find(l => l.getIdLote() === loteId);
+    if (!lote) {
+        throw new Error("Lote no encontrado.");
+    }
+
+    if (!lote.estaDisponible()) {
+        throw new Error("El lote no está disponible.");
+    }
+
+    // ✅ SOLO reservar
+    lote.reservar();
+
+    const venta = new Venta(
+        this.contadorVentas++,
+        asesor,
+        cliente,
+        lote,
+        tipo,
+        this.tasaInteresDiariaGlobal,
+        numeroCuotas
     );
-    
-        // Cambiar estado de lote
-        lote.reservar();
-    
-        // ✅ Cambiar estado según tipo
-        if (tipo === TipoVenta.FINANCIADO) {
-            lote.activarFinanciamiento();
-        } else {
-            lote.vender();
-        }
-    
-        this.ventas.push(venta);
-        asesor.agregarVenta(venta);
-    
+
+    this.ventas.push(venta);
+    asesor.agregarVenta(venta);
+
         // ==========================================
         // 🔒 CREAR REGISTRO HISTÓRICO INMUTABLE
         // ==========================================
@@ -96,8 +93,8 @@ export class VentaService{
     );
     
         this.historialVentas.push(ventaHistorica);
-    
-        return venta;
+
+    return venta;
     }
 
     public obtenerHistorialVentas(usuario: Usuario): VentaHistorica[] {
@@ -117,22 +114,40 @@ export class VentaService{
         throw new Error("Venta no encontrada.");
     }
 
-    if (venta.estaAnulada()) {
+    if (venta.getEstado() === EstadoVenta.ANULADA) {
         throw new Error("La venta ya fue anulada.");
+    }
+
+    if (venta.getEstado() === EstadoVenta.COMPLETADA) {
+        throw new Error("No se puede anular una venta completada.");
     }
 
     const cliente = venta.getCliente();
     const idCliente = cliente.getId();
-    const lote = venta.getLote();
 
+    // Ejecuta lógica de anulación
     venta.anularVenta(this.porcentajePenalidad);
-    lote.liberar();
 
+    // Guardar en historial
+    this.historialVentas.push(
+        new VentaHistorica(
+            venta.getIdVenta(),
+            venta.getCliente().getNombre(),
+            venta.getAsesor().getNombre(),
+            new Date(),
+            venta.getTipo(),
+            venta.getTotal(),
+            "Venta anulada"
+        )
+    );
+
+    // Eliminar venta activa
     const indexVenta = this.ventas.findIndex(v => v.getIdVenta() === idVenta);
     if (indexVenta !== -1) {
         this.ventas.splice(indexVenta, 1);
     }
 
+    // Eliminar cliente si no tiene más ventas
     const tieneOtraVenta = this.ventas.some(v =>
         v.getCliente().getId() === idCliente
     );

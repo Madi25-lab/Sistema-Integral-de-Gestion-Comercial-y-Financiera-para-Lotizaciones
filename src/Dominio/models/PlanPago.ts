@@ -1,3 +1,5 @@
+// ==== C:\Users\HP\Desktop\Proyecto_Final\src\Dominio\models\PlanPago.ts ====
+
 import { Cuota } from "./Cuota";
 
 export class PlanPago {
@@ -27,10 +29,6 @@ export class PlanPago {
         }
     }
 
-    // =========================
-    // CONSULTAS CORREGIDAS 
-    // =========================
-
     public obtenerCuotasRestantes(): number {
         return this.cuotas.filter(c => !c.estaPagada()).length;
     }
@@ -46,10 +44,6 @@ export class PlanPago {
             .filter(c => c.estaPagada())
             .reduce((total, c) => total + c.getMontoTotal(), 0);
     }
-
-    // =========================
-    // PAGAR CUOTA CORREGIDO 
-    // =========================
 
     public pagarCuota(numero: number, fechaPago: Date): void {
 
@@ -70,18 +64,22 @@ export class PlanPago {
         return this.cuotas.every(c => c.estaPagada());
     }
 
-    // =========================
-    // MODIFICAR TASA
-    // =========================
-
     public modificarTasaInteres(nuevaTasa: number): void {
-        if (nuevaTasa < 0 || nuevaTasa>1) {
-            throw new Error("Tasa inválida.");
+        if (nuevaTasa < 0 || nuevaTasa > 1) {
+            throw new Error("La tasa debe estar entre 0 y 1.");
         }
         this.tasaInteresDiaria = nuevaTasa;
     }
 
     public getCuotas(): Cuota[] {
         return this.cuotas;
+    }
+
+    public getNumeroCuotas(): number {
+        return this.numeroCuotas;
+    }
+
+    public getTasaInteresDiaria(): number {
+        return this.tasaInteresDiaria;
     }
 }

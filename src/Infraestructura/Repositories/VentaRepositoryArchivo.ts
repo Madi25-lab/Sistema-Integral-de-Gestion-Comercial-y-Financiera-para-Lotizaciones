@@ -64,10 +64,10 @@ export class VentaRepositoryArchivo {
         throw new Error("Lote no encontrado.");
     }
 
-    // Restaurar estado correcto del lote
-    if (obj.estado === "RESERVADO") lote.reservar();
-    if (obj.estado === "EN_FINANCIAMIENTO") lote.activarFinanciamiento();
-    if (obj.estado === "VENDIDO") lote.marcarVendido();
+    // Asegurar que el lote esté reservado antes de crear la venta
+    if (lote.estaDisponible()) {
+        lote.reservar();
+    }
 
     const venta = new Venta(
         obj.id,
@@ -77,11 +77,12 @@ export class VentaRepositoryArchivo {
         obj.tipo as TipoVenta,
         obj.tasaInteresDiaria,
         obj.numeroCuotas,
-        new Date(obj.fecha)
+        new Date(obj.fecha),
+        obj.estado
     );
 
     return venta;
-}
+    }
 
     // ================= MÉTODOS PÚBLICOS =================
 
@@ -91,28 +92,28 @@ export class VentaRepositoryArchivo {
 
     public guardar(venta: Venta): void {
 
-        const data = this.leerArchivo();
-        const plan = venta.getPlanPago();
+    const data = this.leerArchivo();
+    const plan = venta.getPlanPago();
 
-        data.push({
-            id: venta.getIdVenta(),
-            cliente: {
-                id: venta.getCliente().getId(),
-                nombre: venta.getCliente().getNombre(),
-                dni: venta.getCliente().getDni(),
-                telefono: venta.getCliente().getTelefono(),
-                direccion: venta.getCliente().getDireccion()
-            },
-            asesorId: venta.getAsesor().getId(),
-            loteId: venta.getLote().getIdLote(),
-            tipo: venta.getTipo(),
-            tasaInteresDiaria: plan ? plan.getTasaInteresDiaria() : 0,
-            numeroCuotas: plan ? plan.getNumeroCuotas() : 0,
-            fecha: venta.getFecha().toISOString(),
-            estado: venta.getEstado()
-        });
+    data.push({
+        id: venta.getIdVenta(),
+        cliente: {
+            id: venta.getCliente().getId(),
+            nombre: venta.getCliente().getNombre(),
+            dni: venta.getCliente().getDni(),
+            telefono: venta.getCliente().getTelefono(),
+            direccion: venta.getCliente().getDireccion()
+        },
+        asesorId: venta.getAsesor().getId(),
+        loteId: venta.getLote().getIdLote(),
+        tipo: venta.getTipo(),
+        tasaInteresDiaria: plan ? plan.getTasaInteresDiaria() : 0,
+        numeroCuotas: plan ? plan.getNumeroCuotas() : 0,
+        fecha: venta.getFecha(),
+        estado: venta.getEstado()
+    });
 
-        this.escribirArchivo(data);
+    this.escribirArchivo(data);
     }
 
     public eliminar(id: number): void {

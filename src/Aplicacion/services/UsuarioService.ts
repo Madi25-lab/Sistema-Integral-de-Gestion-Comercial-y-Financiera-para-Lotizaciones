@@ -1,9 +1,13 @@
 import { Usuario } from "../../Dominio/models/Usuario";
 import { Asesor } from "../../Dominio/models/Asesor";
 import { TipoUsuario } from "../../Dominio/enums/TipoUsuario";
+import { UsuarioRepositoryArchivo } from "../../Infraestructura/Repositories/UsuarioRepositoryArchivo";
 
 export class UsuarioService{
-    constructor(private usuarios: Usuario[]){}
+    constructor(
+    private usuarios: Usuario[],
+    private usuarioRepo: UsuarioRepositoryArchivo
+    ){}
 
     public agregarAsesor(
         usuarioLogueado:Usuario,
@@ -51,6 +55,7 @@ export class UsuarioService{
         );
 
         this.usuarios.push(asesor);
+        this.usuarioRepo.guardar(asesor);
 
         return asesor;
     }

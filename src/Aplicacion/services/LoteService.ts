@@ -21,7 +21,7 @@ export class LoteService{
         ubicacion: string,
         zona: Zona,
         tipoDistribucion: TipoDistribucion,
-        precioMetro: number
+        precio: number
     ): Lote {
         
         // 🔒 Validación de permiso
@@ -43,7 +43,7 @@ export class LoteService{
             ubicacion,
             zona,
             tipoDistribucion,
-            precioMetro
+            precio
         );
 
         this.lotes.push(nuevoLote);
