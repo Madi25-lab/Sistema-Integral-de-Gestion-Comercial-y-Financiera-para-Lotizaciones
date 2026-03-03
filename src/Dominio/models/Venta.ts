@@ -11,6 +11,7 @@ export class Venta {
     private planPago: PlanPago | null = null;
     private estado: EstadoVenta;
     private penalidad: Penalidad | null = null;
+    private fecha: Date;
 
     constructor(
         private idVenta: number,
@@ -19,18 +20,22 @@ export class Venta {
         private lote: Lote,
         private tipo: TipoVenta,
         private tasaInteresDiaria: number,
-        numeroCuotas?: number
+        numeroCuotas?: number,
+        fecha?: Date
     ) {
 
         if (!lote.estaReservado()) {
             throw new Error("El lote debe estar reservado.");
         }
 
+        this.fecha = fecha ?? new Date(); // 👈 si no envían fecha, usa la actual
         this.estado = EstadoVenta.ACTIVA;
 
         if (tipo === TipoVenta.CONTADO) {
+
             this.lote.vender();
             this.estado = EstadoVenta.COMPLETADA;
+
         } else {
 
             if (!numeroCuotas || numeroCuotas <= 0) {
@@ -83,57 +88,39 @@ export class Venta {
     }
 
     // =========================
-    // CONSULTA FINANCIAMIENTO 
-    // =========================
-
-    public getCuotasRestantes(): number {
-        if (!this.planPago) return 0;
-        return this.planPago.obtenerCuotasRestantes();
-    }
-
-    public getMontoRestante(): number {
-        if (!this.planPago) return 0;
-        return this.planPago.obtenerMontoRestante();
-    }
-
-    public esFinanciamiento(): boolean {
-        return this.planPago !== null;
-    }
-
-    // =========================
     // ANULACIÓN
     // =========================
 
-    public anularVenta(porcentajePenalidad: number): number {
+    public anularVenta(porcentajePenalidad: number): void {
 
-        if (this.estado !== EstadoVenta.ACTIVA) {
-            throw new Error("Solo se puede anular venta activa.");
-        }
-
-        if (!this.planPago) {
-            throw new Error("No existe plan de pago.");
-        }
-
-        const totalPagado = this.planPago.obtenerTotalPagado();
-
-        this.penalidad = new Penalidad(
-            porcentajePenalidad,
-            this.lote.getPrecio(),
-            totalPagado
-        );
-
-        const devolucion = this.penalidad.getDevolucion();
-
-        this.estado = EstadoVenta.ANULADA;
-        this.lote.liberar();
-        this.planPago = null;
-
-        return devolucion;
+    if (this.estado === EstadoVenta.ANULADA) {
+        throw new Error("La venta ya está anulada.");
     }
 
-    public estaAnulada(): boolean {
-    return this.estado === EstadoVenta.ANULADA;
+    if (this.estado === EstadoVenta.COMPLETADA) {
+        throw new Error("No se puede anular una venta completada.");
     }
+
+    let totalPagado = 0;
+
+    if (this.tipo === TipoVenta.CONTADO) {
+        totalPagado = this.lote.getPrecio();
+    } else {
+        if (this.planPago) {
+            totalPagado = this.planPago.obtenerTotalPagado();
+        }
+    }
+
+    this.penalidad = new Penalidad(
+        porcentajePenalidad,
+        this.lote.getPrecio(),
+        totalPagado
+    );
+
+    this.estado = EstadoVenta.ANULADA;
+
+    this.lote.liberar(); 
+}
 
     // =========================
     // GETTERS
@@ -144,8 +131,9 @@ export class Venta {
     public getCliente(): Cliente { return this.cliente; }
     public getLote(): Lote { return this.lote; }
     public getTipo(): TipoVenta { return this.tipo; }
-    public getTotal(): number { return this.lote.getPrecio();}
+    public getTotal(): number { return this.lote.getPrecio(); }
     public getPlanPago(): PlanPago | null { return this.planPago; }
     public getEstado(): EstadoVenta { return this.estado; }
     public getPenalidad(): Penalidad | null { return this.penalidad; }
+    public getFecha(): Date { return this.fecha; } 
 }
