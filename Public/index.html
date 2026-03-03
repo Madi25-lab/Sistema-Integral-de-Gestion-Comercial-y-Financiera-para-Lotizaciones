@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InmoSistema — Panel de Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-bg-grid"></div>
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="login-icon">⬡</div>
+      <div class="login-logo">InmoSistema</div>
+      <div class="login-sub">Sistema Inmobiliario Profesional</div>
+    </div>
+    <div class="login-form">
+      <div class="form-group">
+        <label>Usuario</label>
+        <div class="input-wrap">
+          <span class="input-icon">◈</span>
+          <input type="text" id="login-usuario" placeholder="Ingresa tu usuario" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div class="input-wrap">
+          <span class="input-icon">◉</span>
+          <input type="password" id="login-contraseña" placeholder="••••••••"/>
+        </div>
+      </div>
+      <button class="btn-login" onclick="handleLogin()">
+        <span>Iniciar Sesión</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <div id="login-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-icon">⬡</span>
+        <span class="sidebar-name">InmoSistema</span>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar">J</div>
+        <div class="user-info">
+          <div class="user-name" id="topbar-nombre">—</div>
+          <div id="topbar-rol" class="user-role">—</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-label">General</div>
+          <div class="nav-item active" data-view="dashboard" onclick="navigate('dashboard',this)">
+            <span class="nav-icon">◈</span><span>Dashboard</span>
+          </div>
+          <div class="nav-item" data-view="lotes" onclick="navigate('lotes',this)">
+            <span class="nav-icon">◻</span><span>Catálogo Lotes</span>
+          </div>
+        </div>
+
+        <div class="nav-group" id="nav-asesor" style="display:none">
+          <div class="nav-label">Mis Operaciones</div>
+          <div class="nav-item" data-view="mis-clientes" onclick="navigate('mis-clientes',this)">
+            <span class="nav-icon">◯</span><span>Mis Clientes</span>
+          </div>
+          <div class="nav-item" data-view="nueva-venta" onclick="navigate('nueva-venta',this)">
+            <span class="nav-icon">◎</span><span>Nueva Venta</span>
+          </div>
+          <div class="nav-item" data-view="mis-ventas" onclick="navigate('mis-ventas',this)">
+            <span class="nav-icon">◇</span><span>Mis Ventas</span>
+          </div>
+          <div class="nav-item" data-view="cuotas" onclick="navigate('cuotas',this)">
+            <span class="nav-icon">◆</span><span>Pagar Cuotas</span>
+          </div>
+        </div>
+
+        <div class="nav-group" id="nav-jefe" style="display:none">
+          <div class="nav-label">Administración</div>
+          <div class="nav-item" data-view="asesores" onclick="navigate('asesores',this)">
+            <span class="nav-icon">◎</span><span>Asesores</span>
+          </div>
+          <div class="nav-item" data-view="gestionar-lotes" onclick="navigate('gestionar-lotes',this)">
+            <span class="nav-icon">◼</span><span>Gestionar Lotes</span>
+          </div>
+          <div class="nav-item" data-view="todas-ventas" onclick="navigate('todas-ventas',this)">
+            <span class="nav-icon">◈</span><span>Todas las Ventas</span>
+          </div>
+          <div class="nav-item" data-view="reportes" onclick="navigate('reportes',this)">
+            <span class="nav-icon">◉</span><span>Reportes</span>
+          </div>
+          <div class="nav-item" data-view="configuracion" onclick="navigate('configuracion',this)">
+            <span class="nav-icon">⊕</span><span>Configuración</span>
+          </div>
+        </div>
+      </nav>
+
+      <button class="btn-logout" onclick="handleLogout()">
+        <span>⊗</span> Cerrar sesión
+      </button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle" id="dash-welcome">Bienvenido al sistema</div>
+          </div>
+          <div class="page-date" id="dash-date"></div>
+        </div>
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Lotes Disponibles</span>
+              <span class="card-badge" id="lotes-count">—</span>
+            </div>
+            <div id="dash-lotes-table"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" id="dash-extra-title">—</span>
+            </div>
+            <div id="dash-extra-content" style="padding:20px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOTES -->
+      <div class="view" id="view-lotes">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Catálogo de Lotes</div>
+            <div class="page-subtitle">Inventario completo del sistema</div>
+          </div>
+          <button class="btn btn-outline" onclick="cargarLotes()">↻ Actualizar</button>
+        </div>
+        <div class="card">
+          <div class="table-search">
+            <input type="text" id="lotes-search" placeholder="Buscar por nombre, zona o estado..." oninput="filtrarTabla('lotes-search','lotes-tbody')"/>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Tamaño</th><th>Zona</th><th>Distribución</th><th>Precio</th><th>Estado</th></tr></thead>
+            <tbody id="lotes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MIS CLIENTES -->
+      <div class="view" id="view-mis-clientes">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Clientes</div>
+            <div class="page-subtitle">Clientes registrados por ti</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('modal-cliente')">+ Nuevo Cliente</button>
+        </div>
+        <div class="card">
+          <div class="table-search">
+            <input type="text" id="clientes-search" placeholder="Buscar por nombre, DNI o teléfono..." oninput="filtrarTabla('clientes-search','clientes-tbody')"/>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Dirección</th></tr></thead>
+            <tbody id="clientes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MIS VENTAS -->
+      <div class="view" id="view-mis-ventas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Ventas</div>
+            <div class="page-subtitle">Historial completo de tus operaciones</div>
+          </div>
+          <button class="btn btn-gold" onclick="navigate('nueva-venta')">+ Nueva Venta</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Cliente</th><th>Lote</th><th>Tipo</th><th>Cuotas</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="mis-ventas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NUEVA VENTA -->
+      <div class="view" id="view-nueva-venta">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Nueva Venta</div>
+            <div class="page-subtitle">Registra la venta de un lote</div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-section-title">Datos de la Venta</div>
+
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="nv-cliente"></select>
+            <div class="form-hint">¿No está tu cliente? <a href="#" onclick="navigate('mis-clientes')">Regístralo aquí →</a></div>
+          </div>
+
+          <div class="form-group">
+            <label>Lote Disponible</label>
+            <select id="nv-lote" onchange="previsualizarCuotas()"></select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Pago</label>
+              <select id="nv-tipo" onchange="toggleCuotas()">
+                <option value="CONTADO">Al Contado</option>
+                <option value="FINANCIADO">Financiado (cuotas)</option>
+              </select>
+            </div>
+            <div class="form-group" id="nv-cuotas-group" style="display:none">
+              <label>N° de Cuotas (meses)</label>
+              <input type="number" id="nv-cuotas" min="1" max="60" placeholder="Ej: 12" oninput="previsualizarCuotas()"/>
+            </div>
+          </div>
+
+          <div id="nv-preview"></div>
+          <div id="nv-alert"></div>
+
+          <button class="btn btn-gold btn-full" onclick="crearVenta()">✓ Registrar Venta</button>
+        </div>
+      </div>
+
+      <!-- CUOTAS -->
+      <div class="view" id="view-cuotas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Gestión de Cuotas</div>
+            <div class="page-subtitle">Registra pagos de ventas financiadas</div>
+          </div>
+        </div>
+        <div class="form-card" style="margin-bottom:24px">
+          <div class="form-section-title">Seleccionar Venta Financiada</div>
+          <div class="form-group">
+            <label>Venta Financiada Activa</label>
+            <select id="cuota-venta-select" onchange="cargarCuotas()"></select>
+          </div>
+        </div>
+        <div class="card" id="cuotas-card" style="display:none">
+          <div class="card-header">
+            <span class="card-title">Plan de Cuotas</span>
+            <div id="cuotas-resumen-header"></div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>#</th><th>Monto Base</th><th>Vencimiento</th><th>Interés Mora</th><th>Total</th><th>Estado</th><th>Acción</th></tr>
+            </thead>
+            <tbody id="cuotas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASESORES -->
+      <div class="view" id="view-asesores">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Asesores</div>
+            <div class="page-subtitle">Gestión del equipo de ventas</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('modal-asesor')">+ Agregar Asesor</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Usuario</th><th>Clientes</th><th>Ventas</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="asesores-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GESTIONAR LOTES -->
+      <div class="view" id="view-gestionar-lotes">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Gestionar Lotes</div>
+            <div class="page-subtitle">Administra el inventario de propiedades</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('modal-lote')">+ Nuevo Lote</button>
+        </div>
+        <div class="card">
+          <div class="table-search">
+            <input type="text" id="glotes-search" placeholder="Buscar lotes..." oninput="filtrarTabla('glotes-search','gestionar-lotes-tbody')"/>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Tamaño</th><th>Zona</th><th>Distribución</th><th>Precio</th><th>Estado</th></tr></thead>
+            <tbody id="gestionar-lotes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TODAS LAS VENTAS -->
+      <div class="view" id="view-todas-ventas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Todas las Ventas</div>
+            <div class="page-subtitle">Vista global de operaciones del sistema</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <select id="filter-estado-ventas" class="filter-select" onchange="filtrarVentasJefe()">
+              <option value="">Todos los estados</option>
+              <option value="ACTIVA">Activa</option>
+              <option value="COMPLETADA">Completada</option>
+              <option value="ANULADA">Anulada</option>
+            </select>
+            <button class="btn btn-outline" onclick="cargarTodasVentas()">↻ Actualizar</button>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Cliente</th><th>Asesor</th><th>Lote</th><th>Tipo</th><th>Cuotas</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acc.</th></tr>
+            </thead>
+            <tbody id="todas-ventas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="view" id="view-reportes">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Reportes</div>
+            <div class="page-subtitle">Análisis y estadísticas del sistema</div>
+          </div>
+          <button class="btn btn-outline" onclick="cargarReportes()">↻ Actualizar</button>
+        </div>
+        <div class="stats-grid" id="reporte-stats"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Historial de Ventas Completadas</span></div>
+            <table>
+              <thead><tr><th>ID</th><th>Cliente</th><th>Asesor</th><th>Tipo</th><th>Precio</th><th>Fecha</th><th>Detalle</th></tr></thead>
+              <tbody id="historial-tbody"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">🏆 Asesor Destacado</span></div>
+            <div id="asesor-top" style="padding:28px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIGURACIÓN -->
+      <div class="view" id="view-configuracion">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Configuración</div>
+            <div class="page-subtitle">Parámetros globales del sistema</div>
+          </div>
+        </div>
+        <div class="config-grid">
+          <div class="form-card">
+            <div class="form-section-title">⚖ Tasa de Interés Diaria</div>
+            <p class="form-desc">Porcentaje diario aplicado a cuotas pagadas con mora.<br>
+              Ejemplo: <code>0.001</code> = 0.1% diario sobre el monto de la cuota.</p>
+            <div class="form-group">
+              <label>Nueva tasa (entre 0 y 1)</label>
+              <input type="number" id="cfg-tasa" step="0.001" min="0" max="1" placeholder="0.001"/>
+            </div>
+            <div id="cfg-tasa-preview" class="config-preview"></div>
+            <button class="btn btn-gold btn-full" onclick="actualizarTasa()">Guardar Tasa</button>
+          </div>
+
+          <div class="form-card">
+            <div class="form-section-title">⚡ Penalidad por Anulación</div>
+            <p class="form-desc">Porcentaje del precio del lote cobrado al anular una venta activa.<br>
+              Ejemplo: <code>0.10</code> = 10% de penalidad sobre el precio.</p>
+            <div class="form-group">
+              <label>Porcentaje de penalidad (entre 0 y 1)</label>
+              <input type="number" id="cfg-penalidad" step="0.01" min="0" max="1" placeholder="0.10"/>
+            </div>
+            <div id="cfg-pen-preview" class="config-preview"></div>
+            <button class="btn btn-gold btn-full" onclick="actualizarPenalidad()">Guardar Penalidad</button>
+          </div>
+        </div>
+
+        <div class="form-card" style="margin-top:24px">
+          <div class="form-section-title">◈ Configuración Actual</div>
+          <div id="cfg-actual" class="cfg-actual-content"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ MODALES ══ -->
+
+<!-- Modal: Nuevo Cliente -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Registrar Cliente</h2>
+      <button class="modal-close" onclick="closeModal('modal-cliente')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="cl-nombre" placeholder="Juan Pérez Rodríguez"/>
+      </div>
+      <div class="form-group">
+        <label>DNI <span class="field-hint">(8 dígitos)</span></label>
+        <input type="text" id="cl-dni" maxlength="8" placeholder="12345678"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Teléfono <span class="field-hint">(9 dígitos)</span></label>
+        <input type="text" id="cl-telefono" maxlength="9" placeholder="987654321"/>
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" id="cl-direccion" placeholder="Av. Siempre Viva 123"/>
+      </div>
+    </div>
+    <div id="modal-cliente-alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-gold" onclick="registrarCliente()">✓ Registrar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Asesor -->
+<div class="modal-overlay" id="modal-asesor">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Agregar Asesor</h2>
+      <button class="modal-close" onclick="closeModal('modal-asesor')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Nombre Completo</label>
+      <input type="text" id="as-nombre" placeholder="María López García"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre de Usuario</label>
+        <input type="text" id="as-usuario" placeholder="maria.lopez"/>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="as-contraseña" placeholder="Mínimo 6 caracteres"/>
+      </div>
+    </div>
+    <div id="modal-asesor-alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-asesor')">Cancelar</button>
+      <button class="btn btn-gold" onclick="agregarAsesor()">✓ Agregar Asesor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Lote -->
+<div class="modal-overlay" id="modal-lote">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2>Registrar Lote</h2>
+      <button class="modal-close" onclick="closeModal('modal-lote')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del Lote</label>
+        <input type="text" id="lt-nombre" placeholder="Lote A-03"/>
+      </div>
+      <div class="form-group">
+        <label>Tamaño (m²)</label>
+        <input type="number" id="lt-tamanio" min="1" placeholder="120"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Ubicación</label>
+      <input type="text" id="lt-ubicacion" placeholder="Av. Los Álamos 200, Mz. B"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Zona</label>
+        <select id="lt-zona">
+          <option value="A">Zona A — Premium</option>
+          <option value="B">Zona B — Estándar</option>
+          <option value="C">Zona C — Básica</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo de Distribución</label>
+        <select id="lt-distribucion">
+          <option value="ESQUINA">Esquina</option>
+          <option value="AVENIDA">Avenida</option>
+          <option value="PASAJE">Pasaje</option>
+          <option value="FRENTE_PARQUE">Frente al Parque</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Precio (S/)</label>
+      <input type="number" id="lt-precio" min="1" placeholder="15000" oninput="previewLotePrecio()"/>
+    </div>
+    <div id="lt-precio-preview" class="config-preview"></div>
+    <div id="modal-lote-alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-lote')">Cancelar</button>
+      <button class="btn btn-gold" onclick="registrarLote()">✓ Registrar Lote</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle Venta -->
+<div class="modal-overlay" id="modal-detalle-venta">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2>Detalle de Venta</h2>
+      <button class="modal-close" onclick="closeModal('modal-detalle-venta')">✕</button>
+    </div>
+    <div id="modal-detalle-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="script.js"></script>
+</body>
+</html>

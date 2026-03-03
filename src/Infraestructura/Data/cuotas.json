@@ -1,0 +1,100 @@
+{
+  "1": [
+    {
+      "numero": 1,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-04-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 2,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-05-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 3,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-06-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 4,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-07-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 5,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-08-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 6,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-09-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 7,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-10-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 8,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-11-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 9,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2026-12-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 10,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2027-01-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 11,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2027-02-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    },
+    {
+      "numero": 12,
+      "montoBase": 833.33,
+      "fechaVencimiento": "2027-03-03T22:48:45.971Z",
+      "pagada": false,
+      "montoInteres": 0,
+      "fechaPago": null
+    }
+  ]
+}

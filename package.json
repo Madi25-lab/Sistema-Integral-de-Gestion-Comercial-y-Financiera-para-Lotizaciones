@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js"
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "dev": "ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +14,7 @@
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^4.18.2"
+    "express": "^4.22.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -21,5 +22,13 @@
     "@types/node": "^25.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Madi25-lab/Sistema-Integral-de-Gestion-Comercial-y-Financiera-para-Lotizaciones.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Madi25-lab/Sistema-Integral-de-Gestion-Comercial-y-Financiera-para-Lotizaciones/issues"
+  },
+  "homepage": "https://github.com/Madi25-lab/Sistema-Integral-de-Gestion-Comercial-y-Financiera-para-Lotizaciones#readme"
 }

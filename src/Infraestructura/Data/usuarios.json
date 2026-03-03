@@ -26,5 +26,12 @@
     "usuario": "ana",
     "contraseña": "Asesor#03",
     "tipo": "ASESOR"
+  },
+  {
+    "id": 5,
+    "nombre": "Uriel Aguilar",
+    "usuario": "uriel",
+    "contraseña": "uriel1",
+    "tipo": "ASESOR"
   }
 ]
