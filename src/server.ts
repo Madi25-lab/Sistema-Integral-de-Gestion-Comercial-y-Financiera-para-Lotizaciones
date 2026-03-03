@@ -84,19 +84,9 @@ app.post("/api/ventas", (req, res) => {
 });
 
 // ===== FRONTEND =====
-
 app.use(express.static("public"));
 
-// Si alguien entra a "/", devolver index.html
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../public/index.html"));
-});
-
 const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-    res.send("Servidor funcionando correctamente 🚀");
-});
 
 app.listen(PORT, () => {
     console.log("Servidor corriendo en puerto " + PORT);
