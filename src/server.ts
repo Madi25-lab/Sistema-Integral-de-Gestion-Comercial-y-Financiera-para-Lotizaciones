@@ -85,8 +85,7 @@ app.post("/api/ventas", (req, res) => {
 
 // ===== FRONTEND =====
 
-// MUY IMPORTANTE: usar path correcto para producción
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static("public"));
 
 // Si alguien entra a "/", devolver index.html
 app.get("*", (req, res) => {
