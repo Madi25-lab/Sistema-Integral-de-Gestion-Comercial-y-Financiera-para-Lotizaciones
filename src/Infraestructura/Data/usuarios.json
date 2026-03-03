@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "nombre": "Carlos Ramirez",
+    "usuario": "admin",
+    "contraseña": "1234",
+    "tipo": "JEFE"
+  },
+  {
+    "id": 2,
+    "nombre": "Maria Lopez",
+    "usuario": "maria",
+    "contraseña": "Asesor#01",
+    "tipo": "ASESOR"
+  },
+  {
+    "id": 3,
+    "nombre": "Luis Torres",
+    "usuario": "luis",
+    "contraseña": "Asesor#02",
+    "tipo": "ASESOR"
+  },
+  {
+    "id": 4,
+    "nombre": "Ana Gutierrez",
+    "usuario": "ana",
+    "contraseña": "Asesor#03",
+    "tipo": "ASESOR"
+  }
+]
