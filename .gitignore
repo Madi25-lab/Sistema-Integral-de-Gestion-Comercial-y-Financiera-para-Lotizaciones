@@ -4,12 +4,6 @@ node_modules/
 # Compilación TypeScript
 dist/
 
-# Datos dinámicos (se generan en uso, no subir a GitHub)
-src/Infraestructura/Data/clientes.json
-src/Infraestructura/Data/ventas.json
-src/Infraestructura/Data/cuotas.json
-src/Infraestructura/Data/historial.json
-
 # Variables de entorno
 .env
 .env.local
