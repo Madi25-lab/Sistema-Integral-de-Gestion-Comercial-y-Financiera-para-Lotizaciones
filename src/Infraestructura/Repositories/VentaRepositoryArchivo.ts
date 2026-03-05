@@ -38,14 +38,38 @@ export class VentaRepositoryArchivo {
 
     // ================= MAPEAR =================
 
-    private mapearVenta(obj: any): Venta {
-    return Venta.reconstruirDesdeJSON(obj);
+    private mapearVenta(obj: any, lotes: any[], asesores: any[]): Venta {
+        // Buscar el lote real (con métodos) usando loteId
+        const loteReal = lotes.find(l => l.getIdLote() === obj.loteId);
+        // Buscar el asesor real (con métodos) usando asesorId
+        const asesorReal = asesores.find(a => a.getId() === obj.asesorId) as Asesor;
+
+        // Reconstruir cliente plano (no necesita métodos de dominio para reportes)
+        const cliente = new Cliente(
+            obj.cliente.id,
+            obj.cliente.nombre,
+            obj.cliente.dni,
+            obj.cliente.telefono,
+            obj.cliente.direccion
+        );
+
+        const venta = Venta.reconstruirDesdeJSON({
+            ...obj,
+            lote:   loteReal,
+            asesor: asesorReal,
+            cliente
+        });
+
+        return venta;
     }
 
     // ================= MÉTODOS PÚBLICOS =================
 
     public obtenerTodos(): Venta[] {
-        return this.leerArchivo().map(obj => this.mapearVenta(obj));
+        const lotes    = this.loteRepo.obtenerTodos();
+        const usuarios = this.usuarioRepo.obtenerTodos();
+        const asesores = usuarios.filter(u => u.getTipo() === TipoUsuario.ASESOR);
+        return this.leerArchivo().map(obj => this.mapearVenta(obj, lotes, asesores));
     }
 
     public guardar(venta: Venta): void {

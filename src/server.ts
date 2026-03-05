@@ -173,6 +173,56 @@ app.post("/api/lotes", (req, res) => {
   } catch (e: any) { return res.status(400).json({ mensaje: e.message }); }
 });
 
+// ── PUT editar lote  →  LoteRepositoryArchivo.actualizar() ──
+app.put("/api/lotes/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { jefeId, nombre, tamanio, ubicacion, zona, tipoDistribucion, precio } = req.body;
+
+  const jefe = getJefe(Number(jefeId));
+  if (!jefe) return res.status(403).json({ mensaje: "Solo el jefe puede editar lotes." });
+
+  const lote = loteRepo.buscarPorId(id);
+  if (!lote) return res.status(404).json({ mensaje: "Lote no encontrado." });
+
+  // No permitir editar lotes con ventas activas
+  const ventasActivas = (leerJSON(VENTAS_PATH) as any[])
+    .filter(v => v.loteId === id && v.estado !== "ANULADA");
+  if (ventasActivas.length > 0)
+    return res.status(400).json({ mensaje: "No se puede editar un lote con ventas activas." });
+
+  try {
+    loteRepo.actualizar(id, {
+      nombre:           String(nombre),
+      tamanio:          Number(tamanio),
+      ubicacion:        String(ubicacion),
+      zona:             String(zona),
+      tipoDistribucion: String(tipoDistribucion),
+      precio:           Number(precio),
+    });
+    return res.json({ mensaje: "Lote actualizado correctamente." });
+  } catch (e: any) { return res.status(400).json({ mensaje: e.message }); }
+});
+
+// ── DELETE eliminar lote  →  LoteRepositoryArchivo.eliminar() ──
+app.delete("/api/lotes/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { jefeId } = req.body;
+
+  const jefe = getJefe(Number(jefeId));
+  if (!jefe) return res.status(403).json({ mensaje: "Solo el jefe puede eliminar lotes." });
+
+  const lote = loteRepo.buscarPorId(id);
+  if (!lote) return res.status(404).json({ mensaje: "Lote no encontrado." });
+
+  if (lote.getEstado() !== "DISPONIBLE")
+    return res.status(400).json({ mensaje: "Solo se pueden eliminar lotes DISPONIBLES." });
+
+  try {
+    loteRepo.eliminar(id);
+    return res.json({ mensaje: "Lote eliminado correctamente." });
+  } catch (e: any) { return res.status(400).json({ mensaje: e.message }); }
+});
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  3. CLIENTES  →  Asesor.registrarCliente (Dominio) → clientes.json (Infraestructura)
 // ══════════════════════════════════════════════════════════════════════════════
@@ -549,6 +599,32 @@ app.post("/api/usuarios/:id/desbloquear", (req, res) => {
 
   target.desbloquear();   // ← Usuario.desbloquear() (Dominio) — resetea intentosFallidos y bloqueado
   return res.json({ mensaje: "Usuario desbloqueado correctamente." });
+});
+
+// ── DELETE eliminar asesor  →  UsuarioRepositoryArchivo.eliminar() ──
+app.delete("/api/asesores/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { jefeId } = req.body;
+
+  const jefe = getJefe(Number(jefeId));
+  if (!jefe) return res.status(403).json({ mensaje: "Solo el jefe puede eliminar asesores." });
+
+  const usuarios = usuarioRepo.obtenerTodos();
+  const asesor   = usuarios.find(u => u.getId() === id);
+  if (!asesor) return res.status(404).json({ mensaje: "Asesor no encontrado." });
+  if (asesor.getTipo() !== TipoUsuario.ASESOR)
+    return res.status(400).json({ mensaje: "Solo se pueden eliminar asesores." });
+
+  // Verificar que no tenga ventas activas
+  const ventasActivas = (leerJSON(VENTAS_PATH) as any[])
+    .filter(v => v.asesorId === id && v.estado !== "ANULADA");
+  if (ventasActivas.length > 0)
+    return res.status(400).json({ mensaje: "No se puede eliminar un asesor con ventas activas o completadas." });
+
+  try {
+    usuarioRepo.eliminar(id);
+    return res.json({ mensaje: "Asesor eliminado correctamente." });
+  } catch (e: any) { return res.status(400).json({ mensaje: e.message }); }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

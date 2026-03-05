@@ -124,8 +124,25 @@ async function handleLogin() {
 }
 
 document.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+
+  // Login
   const ls = document.getElementById("login-screen");
-  if (e.key === "Enter" && ls && ls.style.display !== "none") handleLogin();
+  if (ls && ls.style.display !== "none") { handleLogin(); return; }
+
+  // Modales abiertos — Enter dispara guardar
+  const modalesAcciones = {
+    "modal-cliente": () => guardarCliente(),
+    "modal-asesor":  () => guardarAsesor(),
+    "modal-lote":    () => guardarLote(),
+  };
+  for (const [id, accion] of Object.entries(modalesAcciones)) {
+    const modal = document.getElementById(id);
+    if (modal && modal.classList.contains("open")) {
+      if (document.activeElement.tagName !== "SELECT") accion();
+      return;
+    }
+  }
 });
 
 function handleLogout() {
@@ -331,8 +348,10 @@ async function fetchLotes() {
 }
 
 function renderTablaLotes(lotes, tbodyId) {
+  const esGestion = tbodyId === "gestionar-lotes-tbody";
+  const cols      = esGestion ? 8 : 7;
   document.getElementById(tbodyId).innerHTML = lotes.length === 0
-    ? `<tr><td colspan="7"><div class="empty-state"><div class="icon">◻</div><p>Sin lotes registrados.</p></div></td></tr>`
+    ? `<tr><td colspan="${cols}"><div class="empty-state"><div class="icon">◻</div><p>Sin lotes registrados.</p></div></td></tr>`
     : lotes.map(l => `
         <tr>
           <td><code style="color:var(--text3);font-size:12px">#${l.id}</code></td>
@@ -342,6 +361,12 @@ function renderTablaLotes(lotes, tbodyId) {
           <td style="color:var(--text2);font-size:12px">${distribLabel[l.tipoDistribucion] || l.tipoDistribucion}</td>
           <td style="color:var(--gold);font-weight:600">${fmt(l.precio)}</td>
           <td>${badgeLote(l.estado)}</td>
+          ${esGestion ? `<td style="display:flex;gap:6px">
+            <button class="btn-sm" onclick="abrirEditarLote(${l.id})">✏ Editar</button>
+            ${l.estado === "DISPONIBLE"
+              ? `<button class="btn-danger-sm" onclick="eliminarLote(${l.id}, '${l.nombre}')">✕ Eliminar</button>`
+              : `<span style="color:var(--text3);font-size:11px">—</span>`}
+          </td>` : ""}
         </tr>`).join("");
 }
 
@@ -359,7 +384,41 @@ function previewLotePrecio() {
     · Cuota 24m: <strong style="color:var(--info)">${fmt(precio / 24)}</strong>`;
 }
 
-async function registrarLote() {
+// Abrir modal en modo CREAR
+function abrirNuevoLote() {
+  document.getElementById("lt-id").value = "";
+  document.getElementById("modal-lote-titulo").textContent = "Registrar Lote";
+  document.getElementById("modal-lote-btn").textContent = "✓ Registrar Lote";
+  limpiar("lt-nombre", "lt-tamanio", "lt-ubicacion", "lt-precio");
+  setAlert("modal-lote-alert", "");
+  document.getElementById("lt-precio-preview").classList.remove("visible");
+  openModal("modal-lote");
+}
+
+// Abrir modal en modo EDITAR — rellena los campos con datos actuales
+async function abrirEditarLote(id) {
+  try {
+    const lotes = await fetchLotes();
+    const l = lotes.find(x => x.id === id);
+    if (!l) { toast("Lote no encontrado.", "error"); return; }
+    document.getElementById("lt-id").value          = l.id;
+    document.getElementById("lt-nombre").value      = l.nombre;
+    document.getElementById("lt-tamanio").value     = l.tamanio;
+    document.getElementById("lt-ubicacion").value   = l.ubicacion || "";
+    document.getElementById("lt-zona").value        = l.zona;
+    document.getElementById("lt-distribucion").value = l.tipoDistribucion;
+    document.getElementById("lt-precio").value      = l.precio;
+    document.getElementById("modal-lote-titulo").textContent = "Editar Lote";
+    document.getElementById("modal-lote-btn").textContent    = "✓ Guardar Cambios";
+    setAlert("modal-lote-alert", "");
+    previewLotePrecio();
+    openModal("modal-lote");
+  } catch { toast("Error al cargar datos del lote.", "error"); }
+}
+
+// Guardar lote — crea o edita según el campo oculto lt-id
+async function guardarLote() {
+  const ltId    = document.getElementById("lt-id").value;
   const nombre  = document.getElementById("lt-nombre").value.trim();
   const tamanio = parseFloat(document.getElementById("lt-tamanio").value);
   const ubic    = document.getElementById("lt-ubicacion").value.trim();
@@ -370,20 +429,40 @@ async function registrarLote() {
   if (!nombre || !ubic || isNaN(tamanio) || tamanio <= 0 || isNaN(precio) || precio <= 0) {
     setAlert("modal-lote-alert", "Completa todos los campos. Tamaño y precio deben ser mayores a 0."); return;
   }
+
+  const esEdicion = ltId !== "";
+  const url    = esEdicion ? `/api/lotes/${ltId}` : "/api/lotes";
+  const method = esEdicion ? "PUT" : "POST";
+
   try {
-    const res  = await fetch("/api/lotes", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+    const res  = await fetch(url, {
+      method, headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ jefeId: Estado.usuario.id, nombre, tamanio, ubicacion: ubic, zona, tipoDistribucion: dist, precio }),
     });
     const data = await res.json();
     if (!res.ok) { setAlert("modal-lote-alert", data.mensaje); return; }
-    toast(`Lote "${nombre}" registrado correctamente.`);
+    toast(esEdicion ? `Lote "${nombre}" actualizado.` : `Lote "${nombre}" registrado.`);
     closeModal("modal-lote");
-    limpiar("lt-nombre", "lt-tamanio", "lt-ubicacion", "lt-precio");
     setAlert("modal-lote-alert", "");
     document.getElementById("lt-precio-preview").classList.remove("visible");
     cargarGestionarLotes();
   } catch { setAlert("modal-lote-alert", "Error de conexión con el servidor."); }
+}
+
+// Eliminar lote (solo DISPONIBLES)
+async function eliminarLote(id, nombre) {
+  if (!confirm(`¿Eliminar el lote "${nombre}"?
+Esta acción no se puede deshacer.`)) return;
+  try {
+    const res  = await fetch(`/api/lotes/${id}`, {
+      method: "DELETE", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jefeId: Estado.usuario.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.mensaje, "error"); return; }
+    toast(`Lote "${nombre}" eliminado.`);
+    cargarGestionarLotes();
+  } catch { toast("Error de conexión.", "error"); }
 }
 
 // ══════════════════════════════════════════════
@@ -808,10 +887,11 @@ async function cargarAsesores() {
             <td>${a.bloqueado
               ? `<span class="badge badge-anulada">Bloqueado</span>`
               : `<span class="badge badge-completada">Activo</span>`}</td>
-            <td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap">
               ${a.bloqueado
-                ? `<button class="btn-sm" onclick="desbloquearUsuario(${a.id})">Desbloquear</button>`
+                ? `<button class="btn-sm" onclick="desbloquearUsuario(${a.id})">🔓 Desbloquear</button>`
                 : `<span style="color:var(--text3);font-size:12px">—</span>`}
+              <button class="btn-danger-sm" onclick="eliminarAsesor(${a.id}, '${a.nombre}')">✕ Eliminar</button>
             </td>
           </tr>`).join("");
   } catch { toast("Error al cargar asesores.", "error"); }
@@ -850,6 +930,21 @@ async function desbloquearUsuario(id) {
     const data = await res.json();
     if (!res.ok) { toast(data.mensaje, "error"); return; }
     toast("Usuario desbloqueado correctamente.");
+    cargarAsesores();
+  } catch { toast("Error de conexión.", "error"); }
+}
+
+async function eliminarAsesor(id, nombre) {
+  if (!confirm(`¿Eliminar al asesor "${nombre}"?
+Solo se puede eliminar si no tiene ventas activas.`)) return;
+  try {
+    const res  = await fetch(`/api/asesores/${id}`, {
+      method: "DELETE", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jefeId: Estado.usuario.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.mensaje, "error"); return; }
+    toast(`Asesor "${nombre}" eliminado correctamente.`);
     cargarAsesores();
   } catch { toast("Error de conexión.", "error"); }
 }

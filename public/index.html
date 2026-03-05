@@ -123,14 +123,10 @@
 
       <!-- TOPBAR -->
       <div class="topbar">
-        <div class="topbar-left">
-          <div id="dash-date" class="topbar-date"></div>
-        </div>
-        <div class="topbar-right">
-          <div class="topbar-stat">
-            <span class="topbar-stat-label">Lotes disponibles</span>
-            <span class="topbar-stat-val" id="lotes-count">—</span>
-          </div>
+        <span id="dash-date" class="topbar-date"></span>
+        <div class="topbar-stat">
+          <span class="topbar-stat-label">🏡 Lotes disponibles</span>
+          <span class="topbar-stat-val" id="lotes-count">—</span>
         </div>
       </div>
 
@@ -296,14 +292,14 @@
             <div class="page-title">Gestionar Lotes</div>
             <div class="page-subtitle">Administra el inventario de propiedades</div>
           </div>
-          <button class="btn btn-gold" onclick="openModal('modal-lote')">+ Nuevo Lote</button>
+          <button class="btn btn-gold" onclick="abrirNuevoLote()">+ Nuevo Lote</button>
         </div>
         <div class="card">
           <div class="table-search">
             <input type="text" id="glotes-search" placeholder="Buscar lotes..." oninput="filtrarTabla('glotes-search','gestionar-lotes-tbody')"/>
           </div>
           <table>
-            <thead><tr><th>ID</th><th>Nombre</th><th>Tamaño</th><th>Zona</th><th>Distribución</th><th>Precio</th><th>Estado</th></tr></thead>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Tamaño</th><th>Zona</th><th>Distribución</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="gestionar-lotes-tbody"></tbody>
           </table>
         </div>
@@ -473,13 +469,14 @@
   </div>
 </div>
 
-<!-- Modal: Nuevo Lote -->
+<!-- Modal: Nuevo / Editar Lote -->
 <div class="modal-overlay" id="modal-lote">
   <div class="modal modal-wide">
     <div class="modal-header">
-      <h2>Registrar Lote</h2>
+      <h2 id="modal-lote-titulo">Registrar Lote</h2>
       <button class="modal-close" onclick="closeModal('modal-lote')">✕</button>
     </div>
+    <input type="hidden" id="lt-id" value="">
     <div class="form-row">
       <div class="form-group">
         <label>Nombre del Lote</label>
@@ -521,7 +518,7 @@
     <div id="modal-lote-alert"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-lote')">Cancelar</button>
-      <button class="btn btn-gold" onclick="registrarLote()">✓ Registrar Lote</button>
+      <button class="btn btn-gold" id="modal-lote-btn" onclick="guardarLote()">✓ Registrar Lote</button>
     </div>
   </div>
 </div>

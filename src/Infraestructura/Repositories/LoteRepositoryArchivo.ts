@@ -90,11 +90,16 @@ export class LoteRepositoryArchivo {
         this.escribirArchivo(data);
     }
 
+    public actualizar(id: number, campos: Partial<{ nombre: string; tamanio: number; ubicacion: string; zona: string; tipoDistribucion: string; precio: number }>): void {
+        const data = this.leerArchivo();
+        const idx  = data.findIndex((l: any) => l.id === id);
+        if (idx === -1) throw new Error("Lote no encontrado.");
+        data[idx] = { ...data[idx], ...campos };
+        this.escribirArchivo(data);
+    }
+
     public eliminar(id: number): void {
-
-        const data = this.leerArchivo()
-            .filter(l => l.id !== id);
-
+        const data = this.leerArchivo().filter(l => l.id !== id);
         this.escribirArchivo(data);
     }
 }

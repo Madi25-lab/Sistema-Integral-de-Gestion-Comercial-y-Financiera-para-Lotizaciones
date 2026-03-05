@@ -48,13 +48,22 @@ export class UsuarioRepositoryArchivo {
     public guardar(usuario: Usuario): void {
         const data = this.leerArchivo();
 
-        data.push({
-            id: usuario.getId(),
-            nombre: usuario.getNombre(),
-            usuario: usuario.getUsuario(),
+        // Buscar si ya existe para no duplicar (upsert)
+        const idx = data.findIndex((u: any) => u.id === usuario.getId());
+
+        const dato = {
+            id:         usuario.getId(),
+            nombre:     usuario.getNombre(),
+            usuario:    usuario.getUsuario(),
             contraseña: (usuario as any).contraseña,
-            tipo: usuario.getTipo()
-        });
+            tipo:       usuario.getTipo()
+        };
+
+        if (idx !== -1) {
+            data[idx] = dato;   // actualizar si ya existe
+        } else {
+            data.push(dato);    // insertar si es nuevo
+        }
 
         this.escribirArchivo(data);
     }
