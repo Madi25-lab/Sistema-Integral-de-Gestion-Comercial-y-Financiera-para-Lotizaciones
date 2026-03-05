@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ══════════════════ LOGIN ══════════════════ -->
 <div id="login-screen">
   <div class="login-bg-grid"></div>
   <div class="login-box">
@@ -43,8 +43,8 @@
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
+<!-- ══════════════════ APP ══════════════════ -->
+<div id="app" style="display:none">
   <div class="layout">
 
     <!-- SIDEBAR -->
@@ -63,6 +63,7 @@
       </div>
 
       <nav class="sidebar-nav">
+        <!-- General (visible para todos) -->
         <div class="nav-group">
           <div class="nav-label">General</div>
           <div class="nav-item active" data-view="dashboard" onclick="navigate('dashboard',this)">
@@ -73,6 +74,7 @@
           </div>
         </div>
 
+        <!-- ASESOR -->
         <div class="nav-group" id="nav-asesor" style="display:none">
           <div class="nav-label">Mis Operaciones</div>
           <div class="nav-item" data-view="mis-clientes" onclick="navigate('mis-clientes',this)">
@@ -89,6 +91,7 @@
           </div>
         </div>
 
+        <!-- JEFE -->
         <div class="nav-group" id="nav-jefe" style="display:none">
           <div class="nav-label">Administración</div>
           <div class="nav-item" data-view="asesores" onclick="navigate('asesores',this)">
@@ -100,63 +103,67 @@
           <div class="nav-item" data-view="todas-ventas" onclick="navigate('todas-ventas',this)">
             <span class="nav-icon">◈</span><span>Todas las Ventas</span>
           </div>
+          <div class="nav-label" style="margin-top:4px">Análisis</div>
           <div class="nav-item" data-view="reportes" onclick="navigate('reportes',this)">
             <span class="nav-icon">◉</span><span>Reportes</span>
           </div>
           <div class="nav-item" data-view="configuracion" onclick="navigate('configuracion',this)">
-            <span class="nav-icon">⊕</span><span>Configuración</span>
+            <span class="nav-icon">◬</span><span>Configuración</span>
           </div>
         </div>
       </nav>
 
-      <button class="btn-logout" onclick="handleLogout()">
-        <span>⊗</span> Cerrar sesión
-      </button>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="handleLogout()">⏻ Cerrar Sesión</button>
+      </div>
     </aside>
 
     <!-- MAIN -->
     <main class="main">
 
-      <!-- DASHBOARD -->
-      <div class="view active" id="view-dashboard">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Dashboard</div>
-            <div class="page-subtitle" id="dash-welcome">Bienvenido al sistema</div>
-          </div>
-          <div class="page-date" id="dash-date"></div>
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <div id="dash-date" class="topbar-date"></div>
         </div>
-        <div class="stats-grid" id="dash-stats"></div>
-        <div class="two-col">
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title">Lotes Disponibles</span>
-              <span class="card-badge" id="lotes-count">—</span>
-            </div>
-            <div id="dash-lotes-table"></div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title" id="dash-extra-title">—</span>
-            </div>
-            <div id="dash-extra-content" style="padding:20px"></div>
+        <div class="topbar-right">
+          <div class="topbar-stat">
+            <span class="topbar-stat-label">Lotes disponibles</span>
+            <span class="topbar-stat-val" id="lotes-count">—</span>
           </div>
         </div>
       </div>
 
-      <!-- LOTES -->
+      <!-- ══ DASHBOARD ══ -->
+      <div class="view active" id="view-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title" id="dash-welcome">Bienvenido</div>
+            <div class="page-subtitle">Panel de control del sistema inmobiliario</div>
+          </div>
+        </div>
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Lotes Disponibles</span></div>
+            <div id="dash-lotes-table"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title" id="dash-extra-title">Resumen</span></div>
+            <div id="dash-extra-content" style="padding:16px 20px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CATÁLOGO LOTES (todos) ══ -->
       <div class="view" id="view-lotes">
         <div class="page-header">
           <div>
             <div class="page-title">Catálogo de Lotes</div>
-            <div class="page-subtitle">Inventario completo del sistema</div>
+            <div class="page-subtitle">Inventario completo de propiedades</div>
           </div>
-          <button class="btn btn-outline" onclick="cargarLotes()">↻ Actualizar</button>
         </div>
         <div class="card">
-          <div class="table-search">
-            <input type="text" id="lotes-search" placeholder="Buscar por nombre, zona o estado..." oninput="filtrarTabla('lotes-search','lotes-tbody')"/>
-          </div>
           <table>
             <thead><tr><th>ID</th><th>Nombre</th><th>Tamaño</th><th>Zona</th><th>Distribución</th><th>Precio</th><th>Estado</th></tr></thead>
             <tbody id="lotes-tbody"></tbody>
@@ -164,19 +171,16 @@
         </div>
       </div>
 
-      <!-- MIS CLIENTES -->
+      <!-- ══ MIS CLIENTES (asesor) ══ -->
       <div class="view" id="view-mis-clientes">
         <div class="page-header">
           <div>
             <div class="page-title">Mis Clientes</div>
-            <div class="page-subtitle">Clientes registrados por ti</div>
+            <div class="page-subtitle">Administra tu cartera de clientes</div>
           </div>
           <button class="btn btn-gold" onclick="openModal('modal-cliente')">+ Nuevo Cliente</button>
         </div>
         <div class="card">
-          <div class="table-search">
-            <input type="text" id="clientes-search" placeholder="Buscar por nombre, DNI o teléfono..." oninput="filtrarTabla('clientes-search','clientes-tbody')"/>
-          </div>
           <table>
             <thead><tr><th>ID</th><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Dirección</th></tr></thead>
             <tbody id="clientes-tbody"></tbody>
@@ -184,69 +188,62 @@
         </div>
       </div>
 
-      <!-- MIS VENTAS -->
+      <!-- ══ NUEVA VENTA (asesor) ══ -->
+      <div class="view" id="view-nueva-venta">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Nueva Venta</div>
+            <div class="page-subtitle">Registra una nueva operación de compra</div>
+          </div>
+        </div>
+        <div class="form-card" style="max-width:600px">
+          <div id="nv-alert"></div>
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="nv-cliente"></select>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">
+              ¿No tienes clientes? <a href="#" onclick="navigate('mis-clientes')" style="color:var(--gold)">Registra uno primero →</a>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Lote Disponible</label>
+            <select id="nv-lote" onchange="previsualizarCuotas()"></select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Venta</label>
+            <select id="nv-tipo" onchange="toggleCuotas()">
+              <option value="CONTADO">Contado — pago inmediato</option>
+              <option value="FINANCIADO">Financiado — plan de cuotas</option>
+            </select>
+          </div>
+          <div class="form-group" id="nv-cuotas-group" style="display:none">
+            <label>Número de Cuotas Mensuales</label>
+            <input type="number" id="nv-cuotas" min="1" max="60" placeholder="Ej: 12" oninput="previsualizarCuotas()"/>
+          </div>
+          <div id="nv-preview"></div>
+          <div class="form-group" style="margin-top:8px">
+            <button class="btn btn-gold btn-full" onclick="crearVenta()">✓ Registrar Venta</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MIS VENTAS (asesor) ══ -->
       <div class="view" id="view-mis-ventas">
         <div class="page-header">
           <div>
             <div class="page-title">Mis Ventas</div>
-            <div class="page-subtitle">Historial completo de tus operaciones</div>
+            <div class="page-subtitle">Historial de operaciones registradas por ti</div>
           </div>
-          <button class="btn btn-gold" onclick="navigate('nueva-venta')">+ Nueva Venta</button>
         </div>
         <div class="card">
           <table>
-            <thead>
-              <tr><th>ID</th><th>Cliente</th><th>Lote</th><th>Tipo</th><th>Cuotas</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
-            </thead>
+            <thead><tr><th>ID</th><th>Cliente</th><th>Lote</th><th>Tipo</th><th>Cuotas</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="mis-ventas-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- NUEVA VENTA -->
-      <div class="view" id="view-nueva-venta">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Nueva Venta</div>
-            <div class="page-subtitle">Registra la venta de un lote</div>
-          </div>
-        </div>
-        <div class="form-card">
-          <div class="form-section-title">Datos de la Venta</div>
-
-          <div class="form-group">
-            <label>Cliente</label>
-            <select id="nv-cliente"></select>
-            <div class="form-hint">¿No está tu cliente? <a href="#" onclick="navigate('mis-clientes')">Regístralo aquí →</a></div>
-          </div>
-
-          <div class="form-group">
-            <label>Lote Disponible</label>
-            <select id="nv-lote" onchange="previsualizarCuotas()"></select>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tipo de Pago</label>
-              <select id="nv-tipo" onchange="toggleCuotas()">
-                <option value="CONTADO">Al Contado</option>
-                <option value="FINANCIADO">Financiado (cuotas)</option>
-              </select>
-            </div>
-            <div class="form-group" id="nv-cuotas-group" style="display:none">
-              <label>N° de Cuotas (meses)</label>
-              <input type="number" id="nv-cuotas" min="1" max="60" placeholder="Ej: 12" oninput="previsualizarCuotas()"/>
-            </div>
-          </div>
-
-          <div id="nv-preview"></div>
-          <div id="nv-alert"></div>
-
-          <button class="btn btn-gold btn-full" onclick="crearVenta()">✓ Registrar Venta</button>
-        </div>
-      </div>
-
-      <!-- CUOTAS -->
+      <!-- ══ PAGAR CUOTAS (asesor) ══ -->
       <div class="view" id="view-cuotas">
         <div class="page-header">
           <div>
@@ -275,7 +272,7 @@
         </div>
       </div>
 
-      <!-- ASESORES -->
+      <!-- ══ ASESORES (jefe) ══ -->
       <div class="view" id="view-asesores">
         <div class="page-header">
           <div>
@@ -292,7 +289,7 @@
         </div>
       </div>
 
-      <!-- GESTIONAR LOTES -->
+      <!-- ══ GESTIONAR LOTES (jefe) ══ -->
       <div class="view" id="view-gestionar-lotes">
         <div class="page-header">
           <div>
@@ -312,7 +309,7 @@
         </div>
       </div>
 
-      <!-- TODAS LAS VENTAS -->
+      <!-- ══ TODAS LAS VENTAS (jefe) ══ -->
       <div class="view" id="view-todas-ventas">
         <div class="page-header">
           <div>
@@ -339,7 +336,7 @@
         </div>
       </div>
 
-      <!-- REPORTES -->
+      <!-- ══ REPORTES (jefe) ══ -->
       <div class="view" id="view-reportes">
         <div class="page-header">
           <div>
@@ -351,7 +348,7 @@
         <div class="stats-grid" id="reporte-stats"></div>
         <div class="two-col">
           <div class="card">
-            <div class="card-header"><span class="card-title">Historial de Ventas Completadas</span></div>
+            <div class="card-header"><span class="card-title">Historial de Ventas</span></div>
             <table>
               <thead><tr><th>ID</th><th>Cliente</th><th>Asesor</th><th>Tipo</th><th>Precio</th><th>Fecha</th><th>Detalle</th></tr></thead>
               <tbody id="historial-tbody"></tbody>
@@ -364,7 +361,7 @@
         </div>
       </div>
 
-      <!-- CONFIGURACIÓN -->
+      <!-- ══ CONFIGURACIÓN (jefe) ══ -->
       <div class="view" id="view-configuracion">
         <div class="page-header">
           <div>
@@ -379,7 +376,8 @@
               Ejemplo: <code>0.001</code> = 0.1% diario sobre el monto de la cuota.</p>
             <div class="form-group">
               <label>Nueva tasa (entre 0 y 1)</label>
-              <input type="number" id="cfg-tasa" step="0.001" min="0" max="1" placeholder="0.001"/>
+              <input type="number" id="cfg-tasa" step="0.001" min="0" max="1" placeholder="0.001"
+                     oninput="previewTasa()"/>
             </div>
             <div id="cfg-tasa-preview" class="config-preview"></div>
             <button class="btn btn-gold btn-full" onclick="actualizarTasa()">Guardar Tasa</button>
@@ -391,7 +389,8 @@
               Ejemplo: <code>0.10</code> = 10% de penalidad sobre el precio.</p>
             <div class="form-group">
               <label>Porcentaje de penalidad (entre 0 y 1)</label>
-              <input type="number" id="cfg-penalidad" step="0.01" min="0" max="1" placeholder="0.10"/>
+              <input type="number" id="cfg-penalidad" step="0.01" min="0" max="1" placeholder="0.10"
+                     oninput="previewPenalidad()"/>
             </div>
             <div id="cfg-pen-preview" class="config-preview"></div>
             <button class="btn btn-gold btn-full" onclick="actualizarPenalidad()">Guardar Penalidad</button>
@@ -408,7 +407,7 @@
   </div>
 </div>
 
-<!-- ══ MODALES ══ -->
+<!-- ══════════════════ MODALES ══════════════════ -->
 
 <!-- Modal: Nuevo Cliente -->
 <div class="modal-overlay" id="modal-cliente">
@@ -463,7 +462,7 @@
       </div>
       <div class="form-group">
         <label>Contraseña</label>
-        <input type="password" id="as-contraseña" placeholder="Mínimo 6 caracteres"/>
+        <input type="password" id="as-contraseña" placeholder="Mínimo 4 caracteres"/>
       </div>
     </div>
     <div id="modal-asesor-alert"></div>
@@ -527,7 +526,7 @@
   </div>
 </div>
 
-<!-- Modal: Detalle Venta -->
+<!-- Modal: Detalle de Venta -->
 <div class="modal-overlay" id="modal-detalle-venta">
   <div class="modal modal-wide">
     <div class="modal-header">

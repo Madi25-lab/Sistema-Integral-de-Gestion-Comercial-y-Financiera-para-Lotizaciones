@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════
-//  InmoSistema — script.js  (Mejorado + integrado)
+//  InmoSistema — script.js  (Corregido + Completo)
+//  Interfaz de usuario → llama a la API REST del servidor
 // ═══════════════════════════════════════════════════════
 
 const Estado = {
@@ -8,7 +9,7 @@ const Estado = {
   clientes:     [],
   ventas:       [],
   toastTimer:   null,
-  ventasCache:  [],   // cache de todas las ventas (jefe)
+  ventasCache:  [],
 };
 
 // ══════════════════════════════════════════════
@@ -81,22 +82,17 @@ function limpiar(...ids) {
   });
 }
 
-// Filtra filas de una tabla según texto de búsqueda
 function filtrarTabla(searchId, tbodyId) {
   const q = document.getElementById(searchId).value.toLowerCase();
-  const rows = document.querySelectorAll(`#${tbodyId} tr`);
-  rows.forEach(row => {
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(row => {
     row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
   });
 }
 
-// Filtra ventas del jefe por estado
 function filtrarVentasJefe() {
   const filtro = document.getElementById("filter-estado-ventas").value;
-  const rows   = document.querySelectorAll("#todas-ventas-tbody tr");
-  rows.forEach(row => {
-    const txt = row.dataset.estado || "";
-    row.style.display = (!filtro || txt === filtro) ? "" : "none";
+  document.querySelectorAll("#todas-ventas-tbody tr").forEach(row => {
+    row.style.display = (!filtro || (row.dataset.estado || "") === filtro) ? "" : "none";
   });
 }
 
@@ -135,8 +131,8 @@ document.addEventListener("keydown", e => {
 function handleLogout() {
   Estado.usuario = null; Estado.tipo = null;
   Estado.clientes = []; Estado.ventas = []; Estado.ventasCache = [];
-  document.getElementById("app").style.display           = "none";
-  document.getElementById("login-screen").style.display  = "flex";
+  document.getElementById("app").style.display          = "none";
+  document.getElementById("login-screen").style.display = "flex";
   limpiar("login-usuario", "login-contraseña");
   document.getElementById("login-error").textContent = "";
 }
@@ -147,7 +143,7 @@ function handleLogout() {
 
 async function iniciarApp() {
   document.getElementById("login-screen").style.display = "none";
-  document.getElementById("app").style.display          = "block";
+  document.getElementById("app").style.display          = "block";  // ← CORRECCIÓN: era "flex" pero el layout usa block
 
   document.getElementById("topbar-nombre").textContent = Estado.usuario.nombre;
   document.getElementById("user-avatar").textContent   = Estado.usuario.nombre.charAt(0).toUpperCase();
@@ -162,8 +158,8 @@ async function iniciarApp() {
     await cargarVentasAsesor();
   }
 
-  // Mostrar fecha
-  document.getElementById("dash-date").textContent =
+  const dateEl = document.getElementById("dash-date");
+  if (dateEl) dateEl.textContent =
     new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   navigate("dashboard");
@@ -214,19 +210,18 @@ document.addEventListener("click", e => {
 // ══════════════════════════════════════════════
 
 async function cargarDashboard() {
-  document.getElementById("dash-welcome").textContent = `Bienvenido de regreso, ${Estado.usuario.nombre}`;
+  const nombreEl = document.getElementById("dash-welcome");
+  if (nombreEl) nombreEl.textContent = `Bienvenido de regreso, ${Estado.usuario.nombre}`;
+
   const lotes = await fetchLotes();
   const disp  = lotes.filter(l => l.estado === "DISPONIBLE");
 
-  document.getElementById("lotes-count").textContent = disp.length;
+  const contEl = document.getElementById("lotes-count");
+  if (contEl) contEl.textContent = disp.length;
 
-  if (Estado.tipo === "JEFE") {
-    await dashJefe(lotes);
-  } else {
-    dashAsesor(disp);
-  }
+  if (Estado.tipo === "JEFE") await dashJefe(lotes);
+  else                            dashAsesor(disp);
 
-  // Tabla lotes disponibles
   document.getElementById("dash-lotes-table").innerHTML = disp.length === 0
     ? `<div class="empty-state"><div class="icon">◻</div><p>No hay lotes disponibles en este momento.</p></div>`
     : `<table><thead><tr><th>Nombre</th><th>Zona</th><th>Dist.</th><th>Precio</th></tr></thead><tbody>
@@ -287,9 +282,8 @@ async function dashJefe(lotes) {
 }
 
 function dashAsesor(disp) {
-  const ventasActivas    = Estado.ventas.filter(v => v.estado === "ACTIVA").length;
-  const ventasComplet    = Estado.ventas.filter(v => v.estado === "COMPLETADA").length;
-  const totalFinanciadas = Estado.ventas.filter(v => v.tipo  === "FINANCIADO").length;
+  const ventasActivas = Estado.ventas.filter(v => v.estado === "ACTIVA").length;
+  const ventasComplet = Estado.ventas.filter(v => v.estado === "COMPLETADA").length;
 
   document.getElementById("dash-stats").innerHTML = `
     <div class="stat-card">
@@ -336,9 +330,8 @@ async function fetchLotes() {
   try { return await (await fetch("/api/lotes")).json(); } catch { return []; }
 }
 
-async function cargarLotes() {
-  const lotes = await fetchLotes();
-  document.getElementById("lotes-tbody").innerHTML = lotes.length === 0
+function renderTablaLotes(lotes, tbodyId) {
+  document.getElementById(tbodyId).innerHTML = lotes.length === 0
     ? `<tr><td colspan="7"><div class="empty-state"><div class="icon">◻</div><p>Sin lotes registrados.</p></div></td></tr>`
     : lotes.map(l => `
         <tr>
@@ -352,47 +345,35 @@ async function cargarLotes() {
         </tr>`).join("");
 }
 
-async function cargarGestionarLotes() {
-  const lotes = await fetchLotes();
-  document.getElementById("gestionar-lotes-tbody").innerHTML = lotes.length === 0
-    ? `<tr><td colspan="7"><div class="empty-state"><div class="icon">◻</div><p>Sin lotes registrados.<br>Crea el primero con <strong>+ Nuevo Lote</strong>.</p></div></td></tr>`
-    : lotes.map(l => `
-        <tr>
-          <td><code style="color:var(--text3);font-size:12px">#${l.id}</code></td>
-          <td><strong>${l.nombre}</strong><div style="font-size:11px;color:var(--text3)">${l.ubicacion || ""}</div></td>
-          <td>${l.tamanio} m²</td>
-          <td><span class="badge badge-reservado">Zona ${l.zona}</span></td>
-          <td style="color:var(--text2);font-size:12px">${distribLabel[l.tipoDistribucion] || l.tipoDistribucion}</td>
-          <td style="color:var(--gold);font-weight:600">${fmt(l.precio)}</td>
-          <td>${badgeLote(l.estado)}</td>
-        </tr>`).join("");
-}
+async function cargarLotes()          { renderTablaLotes(await fetchLotes(), "lotes-tbody"); }
+async function cargarGestionarLotes() { renderTablaLotes(await fetchLotes(), "gestionar-lotes-tbody"); }
 
+// Preview precio al registrar lote
 function previewLotePrecio() {
   const precio = parseFloat(document.getElementById("lt-precio").value);
   const prev   = document.getElementById("lt-precio-preview");
   if (isNaN(precio) || precio <= 0) { prev.classList.remove("visible"); return; }
   prev.classList.add("visible");
   prev.innerHTML = `💰 Precio: <strong style="color:var(--gold)">${fmt(precio)}</strong>
-    · Cuota de 12 meses: <strong style="color:var(--success)">${fmt(precio / 12)}/mes</strong>
-    · Cuota de 24 meses: <strong style="color:var(--info)">${fmt(precio / 24)}/mes</strong>`;
+    · Cuota 12m: <strong style="color:var(--success)">${fmt(precio / 12)}</strong>
+    · Cuota 24m: <strong style="color:var(--info)">${fmt(precio / 24)}</strong>`;
 }
 
 async function registrarLote() {
-  const nombre    = document.getElementById("lt-nombre").value.trim();
-  const tamanio   = parseFloat(document.getElementById("lt-tamanio").value);
-  const ubicacion = document.getElementById("lt-ubicacion").value.trim();
-  const zona      = document.getElementById("lt-zona").value;
-  const dist      = document.getElementById("lt-distribucion").value;
-  const precio    = parseFloat(document.getElementById("lt-precio").value);
+  const nombre  = document.getElementById("lt-nombre").value.trim();
+  const tamanio = parseFloat(document.getElementById("lt-tamanio").value);
+  const ubic    = document.getElementById("lt-ubicacion").value.trim();
+  const zona    = document.getElementById("lt-zona").value;
+  const dist    = document.getElementById("lt-distribucion").value;
+  const precio  = parseFloat(document.getElementById("lt-precio").value);
 
-  if (!nombre || !ubicacion || isNaN(tamanio) || tamanio <= 0 || isNaN(precio) || precio <= 0) {
+  if (!nombre || !ubic || isNaN(tamanio) || tamanio <= 0 || isNaN(precio) || precio <= 0) {
     setAlert("modal-lote-alert", "Completa todos los campos. Tamaño y precio deben ser mayores a 0."); return;
   }
   try {
     const res  = await fetch("/api/lotes", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jefeId: Estado.usuario.id, nombre, tamanio, ubicacion, zona, tipoDistribucion: dist, precio }),
+      body: JSON.stringify({ jefeId: Estado.usuario.id, nombre, tamanio, ubicacion: ubic, zona, tipoDistribucion: dist, precio }),
     });
     const data = await res.json();
     if (!res.ok) { setAlert("modal-lote-alert", data.mensaje); return; }
@@ -517,7 +498,7 @@ async function prepararNuevaVenta() {
   const disp  = lotes.filter(l => l.estado === "DISPONIBLE");
 
   document.getElementById("nv-cliente").innerHTML = Estado.clientes.length === 0
-    ? `<option value="">— Sin clientes registrados. Ve a "Mis Clientes" primero —</option>`
+    ? `<option value="">— Sin clientes. Ve a "Mis Clientes" primero —</option>`
     : `<option value="">Selecciona un cliente...</option>` +
       Estado.clientes.map(c => `<option value="${c.id}">${c.nombre}  ·  DNI: ${c.dni}</option>`).join("");
 
@@ -617,29 +598,29 @@ async function anularVentaAsesor(idVenta) {
 }
 
 // ══════════════════════════════════════════════
-//  VER DETALLE DE VENTA
+//  DETALLE DE VENTA (modal)
 // ══════════════════════════════════════════════
 
 async function verDetalleVenta(idVenta, origen) {
-  // Buscar en cache o hacer fetch
+  // Buscar en caches locales
   let venta = Estado.ventas.find(v => v.idVenta === idVenta)
            || Estado.ventasCache.find(v => v.id === idVenta);
 
   if (!venta) return;
 
-  // Para vista de asesor, usar estructura de Estado.ventas
   const esAsesor = origen === "asesor";
+  // CORRECCIÓN: para jefe, el id está en venta.id; para asesor, en venta.idVenta
+  const idReal   = esAsesor ? venta.idVenta : venta.id;
   const cliente  = venta.cliente || {};
-  const lote     = venta.lote    || {};
-  const total    = venta.total   || 0;
+  const loteNom  = esAsesor ? (venta.lote?.nombre || "—") : (venta.loteNombre || "—");
+  const total    = venta.total || 0;
 
   let cuotasHtml = "";
-  if ((venta.tipo === "FINANCIADO" || venta.tipo === "FINANCIADO") &&
-       (venta.estado === "ACTIVA" || venta.estado === "COMPLETADA")) {
+  if (venta.tipo === "FINANCIADO" &&
+     (venta.estado === "ACTIVA" || venta.estado === "COMPLETADA")) {
     try {
-      const vid = esAsesor ? venta.idVenta : venta.id;
-      const r   = await fetch(`/api/ventas/${vid}/cuotas`);
-      const d   = await r.json();
+      const r = await fetch(`/api/ventas/${idReal}/cuotas`);
+      const d = await r.json();
       if (r.ok) {
         cuotasHtml = `
           <div style="margin-top:16px">
@@ -658,7 +639,7 @@ async function verDetalleVenta(idVenta, origen) {
     <div class="detail-grid">
       <div class="detail-item">
         <div class="detail-label">ID Venta</div>
-        <div class="detail-value" style="color:var(--gold)">#${esAsesor ? venta.idVenta : venta.id}</div>
+        <div class="detail-value" style="color:var(--gold)">#${idReal}</div>
       </div>
       <div class="detail-item">
         <div class="detail-label">Estado</div>
@@ -674,7 +655,7 @@ async function verDetalleVenta(idVenta, origen) {
       </div>
       <div class="detail-item">
         <div class="detail-label">Lote</div>
-        <div class="detail-value">${lote.nombre || venta.loteNombre || "—"}</div>
+        <div class="detail-value">${loteNom}</div>
       </div>
       <div class="detail-item">
         <div class="detail-label">Tipo de Pago</div>
@@ -809,7 +790,6 @@ async function cargarAsesores() {
     const ventasPorAsesor = ventas.reduce((acc, v) => {
       acc[v.asesorId] = (acc[v.asesorId] || 0) + 1; return acc;
     }, {});
-    // Contar clientes por asesor (aproximado via ventas únicas)
     const clientesPorAsesor = ventas.reduce((acc, v) => {
       if (!acc[v.asesorId]) acc[v.asesorId] = new Set();
       if (v.cliente?.id) acc[v.asesorId].add(v.cliente.id);
@@ -838,8 +818,8 @@ async function cargarAsesores() {
 }
 
 async function agregarAsesor() {
-  const nombre    = document.getElementById("as-nombre").value.trim();
-  const usuario   = document.getElementById("as-usuario").value.trim();
+  const nombre     = document.getElementById("as-nombre").value.trim();
+  const usuario    = document.getElementById("as-usuario").value.trim();
   const contraseña = document.getElementById("as-contraseña").value;
 
   if (!nombre || !usuario || !contraseña) { setAlert("modal-asesor-alert", "Completa todos los campos."); return; }
@@ -913,7 +893,6 @@ async function cargarTodasVentas() {
           </td>
         </tr>`).join("");
 
-  // Re-aplicar filtro si hay uno activo
   filtrarVentasJefe();
 }
 
@@ -926,7 +905,7 @@ async function anularVentaJefe(idVenta) {
     const res  = await fetch(`/api/ventas/${idVenta}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) { toast(data.mensaje, "error"); return; }
-    toast(`Venta #${idVenta} anulada. Penalidad aplicada: ${fmt(data.penalidad || 0)}`, "warn");
+    toast(`Venta #${idVenta} anulada. Penalidad: ${fmt(data.penalidad || 0)}`, "warn");
     cargarTodasVentas();
   } catch { toast("Error de conexión.", "error"); }
 }
@@ -984,8 +963,8 @@ async function cargarReportes() {
           </div>
         </div>`;
     } else {
-      document.getElementById("asesor-top").innerHTML = `
-        <div class="empty-state"><div class="icon">🏆</div><p>Sin datos suficientes para mostrar el asesor destacado.</p></div>`;
+      document.getElementById("asesor-top").innerHTML =
+        `<div class="empty-state"><div class="icon">🏆</div><p>Sin datos suficientes.</p></div>`;
     }
   } catch { toast("Error al cargar reportes.", "error"); }
 }
@@ -997,19 +976,21 @@ async function cargarReportes() {
 async function cargarConfiguracion() {
   try {
     const cfg = await (await fetch("/api/config")).json();
-    document.getElementById("cfg-tasa").value     = cfg.tasaInteresDiaria     ?? "";
-    document.getElementById("cfg-penalidad").value = cfg.porcentajePenalidad ?? "";
+    document.getElementById("cfg-tasa").value      = cfg.tasaInteresDiaria     ?? "";
+    document.getElementById("cfg-penalidad").value = cfg.porcentajePenalidad   ?? "";
     mostrarConfigActual(cfg);
   } catch {}
 }
 
 function mostrarConfigActual(cfg) {
-  const tasa = cfg.tasaInteresDiaria     ?? 0;
-  const pen  = cfg.porcentajePenalidad   ?? 0;
-  document.getElementById("cfg-actual").innerHTML = `
+  const tasa = cfg.tasaInteresDiaria   ?? 0;
+  const pen  = cfg.porcentajePenalidad ?? 0;
+  const el   = document.getElementById("cfg-actual");
+  if (!el) return;
+  el.innerHTML = `
     <div class="cfg-item">
       <div class="cfg-item-label">Tasa Diaria Actual</div>
-      <div class="cfg-item-value">${(tasa * 100).toFixed(2)}%</div>
+      <div class="cfg-item-value">${(tasa * 100).toFixed(3)}%</div>
       <div style="font-size:11px;color:var(--text3);margin-top:4px">por día de mora</div>
     </div>
     <div class="cfg-item">
@@ -1017,6 +998,25 @@ function mostrarConfigActual(cfg) {
       <div class="cfg-item-value">${(pen * 100).toFixed(0)}%</div>
       <div style="font-size:11px;color:var(--text3);margin-top:4px">del precio del lote</div>
     </div>`;
+}
+
+// CORRECCIÓN: funciones previewTasa y previewPenalidad referenciadas en el HTML
+function previewTasa() {
+  const t   = parseFloat(document.getElementById("cfg-tasa").value);
+  const el  = document.getElementById("cfg-tasa-preview");
+  if (!el) return;
+  if (isNaN(t) || t < 0) { el.classList.remove("visible"); return; }
+  el.classList.add("visible");
+  el.innerHTML = `Equivale a <strong style="color:var(--gold)">${(t * 100).toFixed(3)}%</strong> diario de mora`;
+}
+
+function previewPenalidad() {
+  const p  = parseFloat(document.getElementById("cfg-penalidad").value);
+  const el = document.getElementById("cfg-pen-preview");
+  if (!el) return;
+  if (isNaN(p) || p < 0) { el.classList.remove("visible"); return; }
+  el.classList.add("visible");
+  el.innerHTML = `Se cobra <strong style="color:var(--danger)">${(p * 100).toFixed(0)}%</strong> del precio del lote al anular`;
 }
 
 async function actualizarTasa() {
@@ -1031,7 +1031,7 @@ async function actualizarTasa() {
     });
     const data = await res.json();
     if (!res.ok) { toast(data.mensaje, "error"); return; }
-    toast(`Tasa de interés actualizada a ${(tasa * 100).toFixed(2)}% diario.`);
+    toast(`Tasa de interés actualizada a ${(tasa * 100).toFixed(3)}% diario.`);
     cargarConfiguracion();
   } catch { toast("Error de conexión.", "error"); }
 }
