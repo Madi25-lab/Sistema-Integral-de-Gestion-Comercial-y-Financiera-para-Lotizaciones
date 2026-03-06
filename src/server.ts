@@ -389,18 +389,19 @@ app.post("/api/ventas", (req, res) => {
       actualizarEstadoLote(lote.getIdLote(), "EN_FINANCIAMIENTO");
     }
 
-    // VentaHistorica — historial.json
-    agregarAlHistorial({
-      idVenta:      nuevoId,
-      cliente:      cliente.getNombre(),
-      asesor:       asesor.getNombre(),
-      fecha:        new Date().toISOString(),
-      metodoDePago: tipoVenta.toString(),
-      precioVenta:  lote.getPrecio(),
-      detalles:     tipoVenta === TipoVenta.FINANCIADO
-        ? `Venta financiada en ${numeroCuotas} cuotas`
-        : "Venta al contado",
-    });
+    // VentaHistorica — solo registrar en historial si es CONTADO (pago inmediato = completada)
+    // Las FINANCIADAS se registran cuando se paga la última cuota
+    if (tipoVenta === TipoVenta.CONTADO) {
+      agregarAlHistorial({
+        idVenta:      nuevoId,
+        cliente:      cliente.getNombre(),
+        asesor:       asesor.getNombre(),
+        fecha:        new Date().toISOString(),
+        metodoDePago: "CONTADO",
+        precioVenta:  lote.getPrecio(),
+        detalles:     "Venta al contado — Pago completado",
+      });
+    }
 
     return res.json({
       mensaje: "Venta registrada correctamente.",
@@ -444,18 +445,7 @@ app.delete("/api/ventas/:id", (req, res) => {
   delete cuotas[idVenta.toString()];
   escribirJSON(CUOTAS_PATH, cuotas);                               // ← cuotas.json
 
-  // Historial de anulación
-  const usuarios = usuarioRepo.obtenerTodos();
-  const asesor   = usuarios.find(u => u.getId() === vd.asesorId);
-  agregarAlHistorial({
-    idVenta,
-    cliente:      vd.cliente?.nombre || "—",
-    asesor:       asesor?.getNombre() || "—",
-    fecha:        new Date().toISOString(),
-    metodoDePago: vd.tipo,
-    precioVenta:  lote?.getPrecio() || 0,
-    detalles:     `Venta anulada — penalidad: S/ ${penalidad.toFixed(2)}`,
-  });
+  // Las ventas anuladas NO se registran en historial — historial es solo de completadas
 
   return res.json({ mensaje: "Venta anulada. Penalidad aplicada.", penalidad });
 });
@@ -652,11 +642,49 @@ app.get("/api/reportes", (_req, res) => {
     // Historial desde archivo (VentaHistorica persistida)
     const historial: any[] = leerJSON(HISTORIAL_PATH);
 
+    // Calcular stats propias del asesor top
+    let asesorTopData = null;
+    if (asesorTop) {
+      const ventasDelTop = ventas.filter(v =>
+        v.getAsesor().getId() === asesorTop.getId() &&
+        v.getEstado() !== "ANULADA"
+      );
+      const ingresosTop = ventasDelTop
+        .filter(v => v.estaCompletamentePagada())
+        .reduce((s, v) => s + v.getTotal(), 0);
+      asesorTopData = {
+        ...serU(asesorTop),
+        totalVentas: ventasDelTop.length,
+        ingresos:    ingresosTop,
+      };
+    }
+
+    // Historial: si historial.json está vacío, generarlo desde ventas.json
+    // Historial: si historial.json está vacío, generarlo solo de ventas COMPLETADAS
+    const historialFinal = historial.length > 0 ? historial :
+      (leerJSON(VENTAS_PATH) as any[])
+        .filter(v => v.estado === "COMPLETADA")
+        .map(v => {
+          const asesorH = usuarioRepo.obtenerTodos().find(u => u.getId() === v.asesorId);
+          const loteH   = loteRepo.buscarPorId(v.loteId);
+          return {
+            idVenta:      v.id,
+            cliente:      v.cliente?.nombre || "—",
+            asesor:       asesorH?.getNombre() || "—",
+            fecha:        v.fecha,
+            metodoDePago: v.tipo,
+            precioVenta:  loteH?.getPrecio() || 0,
+            detalles:     v.tipo === "FINANCIADO"
+              ? `Financiamiento completado — ${v.numeroCuotas} cuotas pagadas`
+              : "Venta al contado — Pago completado",
+          };
+        });
+
     return res.json({
       totalVentas,
       ingresosTotales,
-      asesorTop: asesorTop ? serU(asesorTop) : null,
-      historial,
+      asesorTop: asesorTopData,
+      historial: historialFinal,
     });
   } catch (e: any) { return res.status(400).json({ mensaje: e.message }); }
 });

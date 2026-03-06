@@ -866,10 +866,12 @@ async function cargarAsesores() {
       (await fetch("/api/asesores")).json(),
       fetchTodasVentas(),
     ]);
-    const ventasPorAsesor = ventas.reduce((acc, v) => {
+    // Solo contar ventas NO anuladas para estadísticas reales
+    const ventasValidas = ventas.filter(v => v.estado !== "ANULADA");
+    const ventasPorAsesor = ventasValidas.reduce((acc, v) => {
       acc[v.asesorId] = (acc[v.asesorId] || 0) + 1; return acc;
     }, {});
-    const clientesPorAsesor = ventas.reduce((acc, v) => {
+    const clientesPorAsesor = ventasValidas.reduce((acc, v) => {
       if (!acc[v.asesorId]) acc[v.asesorId] = new Set();
       if (v.cliente?.id) acc[v.asesorId].add(v.cliente.id);
       return acc;
@@ -1048,12 +1050,12 @@ async function cargarReportes() {
           </div>
           <div class="top-asesor-stats">
             <div class="top-stat">
-              <div class="top-stat-val">${data.totalVentas}</div>
-              <div class="top-stat-lbl">Total ventas</div>
+              <div class="top-stat-val">${data.asesorTop.totalVentas ?? data.totalVentas}</div>
+              <div class="top-stat-lbl">Sus ventas</div>
             </div>
             <div class="top-stat">
-              <div class="top-stat-val" style="color:var(--success)">${fmt(data.ingresosTotales)}</div>
-              <div class="top-stat-lbl">Ingresos</div>
+              <div class="top-stat-val" style="color:var(--success)">${fmt(data.asesorTop.ingresos ?? data.ingresosTotales)}</div>
+              <div class="top-stat-lbl">Sus ingresos</div>
             </div>
           </div>
         </div>`;
